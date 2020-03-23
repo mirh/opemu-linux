@@ -261,7 +261,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
-				ssse3_obj->udo_src->base, &address) != 0) goto bad;
+				ssse3_obj->udo_src->base, NULL, &address) != 0) goto bad;
 
 			switch (disp_size) {
 			case 8: disp = ssse3_obj->udo_src->lval.sbyte; break;
@@ -285,7 +285,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
-				ssse3_obj->udo_src->base, &address) != 0) goto bad;
+				ssse3_obj->udo_src->base, NULL, &address) != 0) goto bad;
 
 			switch (disp_size) {
 			case 8: disp = ssse3_obj->udo_src->lval.sbyte; break;
@@ -365,6 +365,8 @@ int op_sse3x_run(op_t *op_obj)
 	case UD_Ipcmpistri:	opf = pcmpistri; goto sse42_common;
     case UD_Ipcmpistrm: opf = pcmpistrm; goto sse42_common;
     case UD_Ipcmpgtq:	opf = pcmpgtq;   goto sse42_common;
+    case UD_Ipopcnt:    opf = popcnt;    goto regop;
+    case UD_Icrc32:     opf = crc32_op;  goto regop;
     
     //SSE 4.1
     //case UD_Iblendpd: opf = blendpd;	goto ssse3_common;
@@ -443,6 +445,14 @@ ssse3_common:
 
 	default: goto bad;
 	}
+
+    // Regular (non-SSE regs) handling
+regop:
+    ssse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
+	ssse3_obj.udo_dst = (ud_operand_t *)ud_insn_opr (op_obj->ud_obj, 0);
+	ssse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
+
+    opf(&ssse3_obj);
 
 good:	
 	if (ssse3_obj.dst64) {

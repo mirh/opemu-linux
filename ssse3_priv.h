@@ -191,3 +191,5 @@ inline void pcmpestri	(ssse3_t*);
 inline void pcmpestrm	(ssse3_t*);
 inline void pcmpistrm	(ssse3_t*);
 inline void pcmpgtq     (ssse3_t*);
+inline void popcnt      (ssse3_t*);
+inline void crc32_op    (ssse3_t*);

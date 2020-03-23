@@ -7,6 +7,9 @@
 #define AFLAG 0x00000010
 #define PFLAG 0x00000020
 
+#define POLYNOMIAL 0x11EDC6F41LL
+#define MAX_BUF 16
+
 #define PCMPSTR_EQ(X, Y, RES) \
 {							\
     int __size = (sizeof (*X) ^ 3) * 8;			\
@@ -583,6 +586,31 @@ void pcmpestrm	(ssse3_t *this)
     }
 }
 
+static void getmemoperand(ssse3_t *this, uint8_t *size, uint64_t *retval)
+{
+    int64_t disp = 0;
+    uint8_t disp_size = this->udo_src->offset;
+    uint64_t address;
+
+    if (this->udo_src->scale) return; // TODO
+
+    if (retrieve_reg (this->op_obj->state, this->udo_src->base, size, &address) != 0) return;
+
+    switch (disp_size) {
+        case 8: disp = this->udo_src->lval.sbyte; break;
+        case 16: disp = this->udo_src->lval.sword; break;
+        case 32: disp = this->udo_src->lval.sdword; break;
+        case 64: disp = this->udo_src->lval.sqword; break;
+    }
+
+    address += disp;
+
+    if (this->op_obj->ring0)
+        retval[0] = *((uint64_t*)(address));
+    else
+        copy_from_user ((char*) &retval[0], address, 8);
+}
+
 void pcmpistrm	(ssse3_t *this)
 {
 	const int imm = this->udo_imm->lval.ubyte;
@@ -630,4 +658,312 @@ void pcmpgtq	(ssse3_t *this)
 {
     this->res.int64[0] = this->src.int64[0] > this->dst.int64[0] ? 0xFFFFFFFFFFFFFFFFLL : 0;
     this->res.int64[1] = this->src.int64[1] > this->dst.int64[1] ? 0xFFFFFFFFFFFFFFFFLL : 0;
+}
+
+static int
+do_popcnt (uint64_t val, uint8_t len)
+{
+    int ret;
+    int i;
+
+    ret = 0;
+    for (i = 0; i < (len * 8); i++)
+    {
+        if ((val & ((uint64_t)1 << (uint64_t) i)))
+        {
+            ret++;
+        }
+    }
+
+    return ret;
+}
+
+// TODO: Add memory operand retrieval for val
+void popcnt	(ssse3_t *this)
+{
+    int ret = 0;
+    uint64_t val = 0;
+    uint8_t size = 0;
+
+    if (this->udo_src->type == UD_OP_REG)
+    {
+        retrieve_reg(this->op_obj->state, this->udo_src->base, &size, &val);
+    } else {
+        getmemoperand(this, &size, &val);
+    }
+    ret = do_popcnt(val, size);
+    store_reg(this->op_obj->state, this->udo_dst->base, (uint64_t)ret);
+}
+
+static void
+shift_mem_by1 (unsigned char* buf, int len)
+{
+    int i;
+
+    for (i = len - 1; i >= 0; i--)
+    {
+        buf[i] = buf[i] << 1;
+        if (i > 0 && (buf[i-1] & 0x80))
+            buf[i] |= 1;
+    }
+}
+
+static void
+div_do (unsigned char* buf, unsigned char* div)
+{
+    int i;
+    for (i = 0; i < 5; i++)
+        buf[i] ^= div[i];
+}
+
+static unsigned int
+calc_rem (unsigned char* buf, int len)
+{
+    union
+    {
+        unsigned long long ll;
+        unsigned char c[8];
+    } divisor;
+    union
+    {
+        unsigned int i;
+        unsigned char c[4];
+    } ret;
+    unsigned char *div_buf;
+    unsigned char divident[MAX_BUF];
+    int disp = len / 8;
+    int i;
+
+    divisor.ll = POLYNOMIAL << 7LL;
+
+    memcpy (divident, buf, disp);
+
+    div_buf = divident + disp - 5;
+
+    for (i = 0; i < len - 32; i++)
+    {
+        if ((div_buf[4] & 0x80))
+            div_do (div_buf, divisor.c);
+        shift_mem_by1 (divident, disp);
+    }
+
+    memcpy (ret.c, div_buf + 1, sizeof (ret));
+    return ret.i;
+}
+
+static void
+reverse_bits (unsigned char *src, int len)
+{
+    unsigned char buf[MAX_BUF];
+    unsigned char *tmp = buf + len - 1;
+    unsigned char ch;
+    int i, j;
+
+    for (i = 0; i < len; i++)
+    {
+        ch = 0;
+        for (j = 0; j < 8; j++)
+            if ((src[i] & (1 << j)))
+                ch |= 1 << (7 - j);
+        *tmp-- = ch;
+    }
+
+    for (i = 0; i < len; i++)
+        src[i] = buf[i];
+}
+
+static void
+shift_mem ( unsigned char *src, unsigned char *dst, int len, int shft)
+{
+    int disp = shft / 8;
+    int i;
+
+    memset (dst, 0, len + disp);
+    for (i = 0; i < len; i++)
+        dst[i + disp] = src[i];
+}
+
+static void
+xor_mem (unsigned char *src, unsigned char *dst, int len)
+{
+    int disp = len / 8;
+    int i;
+
+    for (i = 0; i < disp; i++)
+        dst[i] ^= src[i];
+}
+
+static uint32_t
+compute_crc32_8 (uint32_t crc, uint8_t inp)
+{
+    unsigned char crcbuf[sizeof (uint32_t)];
+    unsigned char inbuf[sizeof (uint8_t)];
+    unsigned char tmp1[MAX_BUF], tmp2[MAX_BUF];
+    int crc_sh, xor_sz;
+    union
+    {
+        uint32_t i;
+        uint8_t c[4];
+    } ret;
+
+    crc_sh = sizeof (uint8_t) * 8;
+    xor_sz = 32 + crc_sh;
+    memcpy (crcbuf, &crc, sizeof (uint32_t));
+    memcpy (inbuf, &inp, sizeof (uint8_t));
+
+    reverse_bits (crcbuf, 4);
+    reverse_bits (inbuf, sizeof (uint8_t));
+
+    shift_mem (inbuf, tmp1, sizeof (uint8_t), 32);
+    shift_mem (crcbuf, tmp2, 4, crc_sh);
+
+    xor_mem (tmp1, tmp2, xor_sz);
+
+    ret.i = calc_rem (tmp2, xor_sz);
+
+    reverse_bits (ret.c, 4);
+
+    return (uint32_t)ret.i;
+}
+
+static uint32_t
+compute_crc32_16 (uint32_t crc, uint16_t inp)
+{
+    unsigned char crcbuf[sizeof (uint32_t)];
+    unsigned char inbuf[sizeof (uint16_t)];
+    unsigned char tmp1[MAX_BUF], tmp2[MAX_BUF];
+    int crc_sh, xor_sz;
+    union
+    {
+        uint32_t i;
+        uint8_t c[4];
+    } ret;
+
+    crc_sh = sizeof (uint16_t) * 8;
+    xor_sz = 32 + crc_sh;
+    memcpy (crcbuf, &crc, sizeof (uint32_t));
+    memcpy (inbuf, &inp, sizeof (uint16_t));
+
+    reverse_bits (crcbuf, 4);
+    reverse_bits (inbuf, sizeof (uint16_t));
+
+    shift_mem (inbuf, tmp1, sizeof (uint16_t), 32);
+    shift_mem (crcbuf, tmp2, 4, crc_sh);
+
+    xor_mem (tmp1, tmp2, xor_sz);
+
+    ret.i = calc_rem (tmp2, xor_sz);
+
+    reverse_bits (ret.c, 4);
+
+    return (uint32_t)ret.i;
+}
+
+static uint32_t
+compute_crc32_32 (uint32_t crc, uint32_t inp)
+{
+    unsigned char crcbuf[sizeof (uint32_t)];
+    unsigned char inbuf[sizeof (uint32_t)];
+    unsigned char tmp1[MAX_BUF], tmp2[MAX_BUF];
+    int crc_sh, xor_sz;
+    union
+    {
+        uint32_t i;
+        uint8_t c[4];
+    } ret;
+
+    crc_sh = sizeof (uint32_t) * 8;
+    xor_sz = 32 + crc_sh;
+    memcpy (crcbuf, &crc, sizeof (uint32_t));
+    memcpy (inbuf, &inp, sizeof (uint32_t));
+
+    reverse_bits (crcbuf, 4);
+    reverse_bits (inbuf, sizeof (uint32_t));
+
+    shift_mem (inbuf, tmp1, sizeof (uint32_t), 32);
+    shift_mem (crcbuf, tmp2, 4, crc_sh);
+
+    xor_mem (tmp1, tmp2, xor_sz);
+
+    ret.i = calc_rem (tmp2, xor_sz);
+
+    reverse_bits (ret.c, 4);
+
+    return (uint32_t)ret.i;
+}
+
+static uint64_t
+compute_crc32_64 (uint64_t crc, uint64_t inp)
+{
+    unsigned char crcbuf[sizeof (uint64_t)];
+    unsigned char inbuf[sizeof (uint64_t)];
+    unsigned char tmp1[MAX_BUF], tmp2[MAX_BUF];
+    int crc_sh, xor_sz;
+    union
+    {
+        uint32_t i;
+        uint8_t c[4];
+    } ret;
+
+    crc_sh = sizeof (uint64_t) * 8;
+    xor_sz = 32 + crc_sh;
+    memcpy (crcbuf, &crc, sizeof (uint64_t));
+    memcpy (inbuf, &inp, sizeof (uint64_t));
+
+    reverse_bits (crcbuf, 4);
+    reverse_bits (inbuf, sizeof (uint64_t));
+
+    shift_mem (inbuf, tmp1, sizeof (uint64_t), 32);
+    shift_mem (crcbuf, tmp2, 4, crc_sh);
+
+    xor_mem (tmp1, tmp2, xor_sz);
+
+    ret.i = calc_rem (tmp2, xor_sz);
+
+    reverse_bits (ret.c, 4);
+
+    return (uint64_t)ret.i;
+}
+
+// TODO: Add memory operand retrieval for val_b
+void crc32_op (ssse3_t *this)
+{
+    uint64_t val_a = 0;
+    uint64_t val_b = 0;
+    uint64_t dst = 0;
+    uint8_t size_a = 0;
+    uint8_t size_b = 0;
+
+    retrieve_reg(this->op_obj->state, this->udo_dst->base, &size_a, &val_a);
+    if (this->udo_src->type == UD_OP_REG)
+    {
+        retrieve_reg(this->op_obj->state, this->udo_src->base, &size_b, &val_b);
+    } else {
+        getmemoperand(this, &size_b, &val_b);
+    }
+
+    switch (size_b)
+    {
+        case 1:
+            dst = compute_crc32_8 ((uint32_t)val_a, (uint8_t)val_b);
+            break;
+
+        case 2:
+            dst = compute_crc32_16 ((uint32_t)val_a, (uint16_t)val_b);
+            break;
+
+        case 4:
+            dst = compute_crc32_32 ((uint32_t)val_a, (uint32_t)val_b);
+            break;
+
+        case 8:
+            dst = compute_crc32_64 (val_a, (uint64_t)val_b);
+            break;
+
+        default:
+            return;
+    }
+
+    store_reg(this->op_obj->state, this->udo_dst->base, (uint64_t)dst);
+
 }

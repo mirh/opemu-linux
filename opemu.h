@@ -64,7 +64,8 @@ extern void unix_syscall(x86_saved_state_t *);
 extern void mach_call_munger64(x86_saved_state_t *state);
 extern void unix_syscall64(x86_saved_state_t *);
 */
-int retrieve_reg(/*const*/ struct pt_regs *regs, const ud_type_t, uint64_t *);
+int retrieve_reg(/*const*/ struct pt_regs *regs, const ud_type_t, uint8_t *, uint64_t *);
+int store_reg(/*const*/ struct pt_regs *regs, const ud_type_t, uint64_t);
 
 /**
  * Entry points for the "plugins"

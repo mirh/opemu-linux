@@ -32,7 +32,7 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			if (sse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (sse3_obj->op_obj->state,
-				sse3_obj->udo_src->base, &address) != 0) goto bad;
+				sse3_obj->udo_src->base, NULL, &address) != 0) goto bad;
 
 			switch (disp_size) {
 			case 8: disp = sse3_obj->udo_src->lval.sbyte; break;
@@ -60,7 +60,7 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			if (sse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (sse3_obj->op_obj->state,
-				sse3_obj->udo_src->base, &address) != 0) goto bad;
+				sse3_obj->udo_src->base, NULL, &address) != 0) goto bad;
 
 			switch (disp_size) {
 			case 8: disp = sse3_obj->udo_src->lval.sbyte; break;

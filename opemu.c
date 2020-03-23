@@ -158,122 +158,479 @@ cleanexit:
  * Retrieve a general purpose value register's value
  * @param saved_state: the saved state
  * @param base:  the register type itself
+ * @param length: reg's size will be stored there
  * @param where: reg's value will be stored there
  * @return: zero if the state could be retrieved
  */
-int retrieve_reg(/*const*/ struct pt_regs *regs, const ud_type_t base, uint64_t *where)
+int retrieve_reg(/*const*/ struct pt_regs *regs, const ud_type_t base, uint8_t *length, uint64_t *where)
 {
 	const struct pt_regs *ss64 = regs;
 	const struct pt_regs *ss32 = regs;
+	uint8_t islongmode = is_saved_state64(regs);
 
 	switch (base) {
 
 	case UD_NONE:
 		*where = 0;
+        if (length != NULL)
+        {
+            *length = 0;
+        }
 		break;
 
-	// TODO what if 32?
 	case UD_R_RIP:
 		*where = ss64 -> ip;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RAX:
 		*where = ss64 -> ax;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RCX:
 		*where = ss64 -> cx;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RDX:
 		*where = ss64 -> dx;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RBX:
 		*where = ss64 -> bx;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RSP:
 		*where = ss64 -> sp;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RBP:
 		*where = ss64 -> bp;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RSI:
 		*where = ss64 -> si;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_RDI:
 		*where = ss64 -> di;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R8:
 		*where = ss64 -> r8;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R9:
 		*where = ss64 -> r9;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R10:
 		*where = ss64 -> r10;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R11:
 		*where = ss64 -> r11;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R12:
 		*where = ss64 -> r12;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R13:
 		*where = ss64 -> r13;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R14:
 		*where = ss64 -> r14;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	case UD_R_R15:
 		*where = ss64 -> r15;
+        if (length != NULL)
+        {
+            *length = 8;
+        }
 		break;
 
 	/* 32 bit general purpose */
 
 	case UD_R_EAX:
-		*where = ss32 -> ax;
+        if (islongmode)
+        {
+            *where = ss64 -> ax & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> ax;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_ECX:
-		*where = ss32 -> cx;
+        if (islongmode)
+        {
+            *where = ss64 -> cx & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> cx;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_EDX:
-		*where = ss32 -> dx;
+        if (islongmode)
+        {
+            *where = ss64 -> dx & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> dx;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_EBX:
-		*where = ss32 -> bx;
+        if (islongmode)
+        {
+            *where = ss64 -> bx & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> bx;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_ESP:
-		*where = ss32 -> sp;
+        if (islongmode)
+        {
+            *where = ss64 -> sp & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> sp;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_EBP:
-		*where = ss32 -> bp;
+        if (islongmode)
+        {
+            *where = ss64 -> bp & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> bp;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_ESI:
-		*where = ss32 -> si;
+        if (islongmode)
+        {
+            *where = ss64 -> si & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> si;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
 
 	case UD_R_EDI:
-		*where = ss32 -> di;
+        if (islongmode)
+        {
+            *where = ss64 -> di & 0xFFFFFFFF;
+        } else {
+            *where = ss32 -> di;
+        }
+        if (length != NULL)
+        {
+            *length = 4;
+        }
 		break;
+
+    /* 16 bit general purpose */
+
+    case UD_R_AX:
+        if (islongmode)
+        {
+            *where = ss64 -> ax & 0xFFFF;
+        } else {
+            *where = (ss32->ax & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_CX:
+        if (islongmode)
+        {
+            *where = ss64 -> cx & 0xFFFF;
+        } else {
+            *where = (ss32->cx & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_DX:
+        if (islongmode)
+        {
+            *where = ss64 -> dx & 0xFFFF;
+        } else {
+            *where = (ss32->dx & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_BX:
+        if (islongmode)
+        {
+            *where = ss64 -> bx & 0xFFFF;
+        } else {
+            *where = (ss32->bx & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_SP:
+        if (islongmode)
+        {
+            *where = ss64 -> sp & 0xFFFF;
+        } else {
+            *where = (ss32->sp & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_BP:
+        if (islongmode)
+        {
+            *where = ss64 -> bp & 0xFFFF;
+        } else {
+            *where = (ss32->bp & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    case UD_R_SI:
+        if (islongmode)
+        {
+            *where = ss64 -> si & 0xFFFF;
+        } else {
+            *where = (ss32->si & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+            break;
+
+    case UD_R_DI:
+        if (islongmode)
+        {
+            *where = ss64 -> di & 0xFFFF;
+        } else {
+            *where = (ss32->di & 0xFFFF);
+        }
+        if (length != NULL)
+        {
+            *length = 2;
+        }
+        break;
+
+    /* 8 bit general purpose */
+
+    case UD_R_AL:
+        if (islongmode)
+        {
+            *where = ss64 -> ax & 0xFF;
+        } else {
+            *where = (ss32->ax & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+    case UD_R_CL:
+        if (islongmode)
+        {
+            *where = ss64 -> cx & 0xFF;
+        } else {
+            *where = (ss32->cx & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+     case UD_R_DL:
+        if (islongmode)
+        {
+            *where = ss64 -> dx & 0xFF;
+        } else {
+            *where = (ss32->dx & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+     case UD_R_BL:
+        if (islongmode)
+        {
+            *where = ss64 -> bx & 0xFF;
+        } else {
+            *where = (ss32->bx & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+     case UD_R_SPL:
+        if (islongmode)
+        {
+            *where = ss64 -> sp & 0xFF;
+        } else {
+            *where = (ss32->sp & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+     case UD_R_BPL:
+        if (islongmode)
+        {
+            *where = ss64 -> bp & 0xFF;
+        } else {
+            *where = (ss32->bp & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+    case UD_R_SIL:
+        if (islongmode)
+        {
+            *where = ss64 -> si & 0xFF;
+        } else {
+            *where = (ss32->si & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
+
+    case UD_R_DIL:
+        if (islongmode)
+        {
+            *where = ss64 -> di & 0xFF;
+        } else {
+            *where = (ss32->di & 0xFF);
+        }
+        if (length != NULL)
+        {
+            *length = 1;
+        }
+        break;
 
 	default: goto bad;
 
@@ -286,3 +643,317 @@ bad:
     return -1;
 }
 
+/**
+ * Store to general purpose register
+ * @param saved_state: the saved state
+ * @param base:  the register type itself
+ * @param what: value that will be stored
+ * @return: zero if the state could be stored
+ */
+int store_reg(/*const*/ struct pt_regs *regs, const ud_type_t base, uint64_t what)
+{
+	struct pt_regs *ss64 = regs;
+	struct pt_regs *ss32 = regs;
+	uint8_t islongmode = is_saved_state64(regs);
+
+	switch (base) {
+
+        case UD_R_RIP:
+            ss64->ip = what;
+            break;
+
+        case UD_R_RAX:
+            ss64->ax = what;
+            break;
+
+        case UD_R_RCX:
+            ss64->cx = what;
+            break;
+
+        case UD_R_RDX:
+            ss64->dx = what;
+            break;
+
+        case UD_R_RBX:
+            ss64->bx = what;
+            break;
+
+        case UD_R_RSP:
+            ss64->sp = what;
+            break;
+
+        case UD_R_RBP:
+            ss64->bp = what;
+            break;
+
+        case UD_R_RSI:
+            ss64->si = what;
+            break;
+
+        case UD_R_RDI:
+            ss64->di = what;
+            break;
+
+        case UD_R_R8:
+            ss64->r8 = what;
+            break;
+
+        case UD_R_R9:
+            ss64->r9 = what;
+            break;
+
+        case UD_R_R10:
+            ss64->r10 = what;
+            break;
+
+        case UD_R_R11:
+            ss64->r11 = what;
+            break;
+
+        case UD_R_R12:
+            ss64->r12 = what;
+            break;
+
+        case UD_R_R13:
+            ss64->r13 = what;
+            break;
+
+        case UD_R_R14:
+            ss64->r14 = what;
+            break;
+
+        case UD_R_R15:
+            ss64->r15 = what;
+            break;
+
+            /* 32 bit general purpose */
+
+        case UD_R_EAX:
+            if (islongmode)
+            {
+                ss64->ax = what & 0xFFFFFFFF;
+            } else {
+                ss32->ax = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_ECX:
+            if (islongmode)
+            {
+                ss64->cx = what & 0xFFFFFFFF;
+            } else {
+                ss32->cx = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_EDX:
+            if (islongmode)
+            {
+                ss64->dx = what & 0xFFFFFFFF;
+            } else {
+                ss32->dx = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_EBX:
+            if (islongmode)
+            {
+                ss64->bx = what & 0xFFFFFFFF;
+            } else {
+                ss32->bx = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_ESP:
+            if (islongmode)
+            {
+                ss64->sp = what & 0xFFFFFFFF;
+            } else {
+                ss32->sp = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_EBP:
+            if (islongmode)
+            {
+                ss64->bp = what & 0xFFFFFFFF;
+            } else {
+                ss32->bp = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_ESI:
+            if (islongmode)
+            {
+                ss64->si = what & 0xFFFFFFFF;
+            } else {
+                ss32->si = (uint32_t)what;
+            }
+            break;
+
+        case UD_R_EDI:
+            if (islongmode)
+            {
+                ss64->di = what & 0xFFFFFFFF;
+            } else {
+                ss32->di = (uint32_t)what;
+            }
+            break;
+
+            /* 16 bit general purpose */
+
+        case UD_R_AX:
+            if (islongmode)
+            {
+                ss64->ax = what & 0xFFFF;
+            } else {
+                ss32->ax = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_CX:
+            if (islongmode)
+            {
+                ss64->cx = what & 0xFFFF;
+            } else {
+                ss32->cx = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_DX:
+            if (islongmode)
+            {
+                ss64->dx = what & 0xFFFF;
+            } else {
+                ss32->dx = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_BX:
+            if (islongmode)
+            {
+                ss64->bx = what & 0xFFFF;
+            } else {
+                ss32->bx = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_SP:
+            if (islongmode)
+            {
+                ss64->sp = what & 0xFFFF;
+            } else {
+                ss32->sp = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_BP:
+            if (islongmode)
+            {
+                ss64->bp = what & 0xFFFF;
+            } else {
+                ss32->bp = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_SI:
+            if (islongmode)
+            {
+                ss64->si = what & 0xFFFF;
+            } else {
+                ss32->si = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+        case UD_R_DI:
+            if (islongmode)
+            {
+                ss64->di = what & 0xFFFF;
+            } else {
+                ss32->di = (uint32_t)(what & 0xFFFF);
+            }
+            break;
+
+            /* 8 bit general purpose */
+
+        case UD_R_AL:
+            if (islongmode)
+            {
+                ss64->ax = what & 0xFF;
+            } else {
+                ss32->ax = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_CL:
+            if (islongmode)
+            {
+                ss64->cx = what & 0xFF;
+            } else {
+                ss32->cx = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_DL:
+            if (islongmode)
+            {
+                ss64->dx = what & 0xFF;
+            } else {
+                ss32->dx = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_BL:
+            if (islongmode)
+            {
+                ss64->bx = what & 0xFF;
+            } else {
+                ss32->bx = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_SPL:
+            if (islongmode)
+            {
+                ss64->sp = what & 0xFF;
+            } else {
+                ss32->sp = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_BPL:
+            if (islongmode)
+            {
+                ss64->bp = what & 0xFF;
+            } else {
+                ss32->bp = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_SIL:
+            if (islongmode)
+            {
+                ss64->si = what & 0xFF;
+            } else {
+                ss32->si = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        case UD_R_DIL:
+            if (islongmode)
+            {
+                ss64->di = what & 0xFF;
+            } else {
+                ss32->di = (uint32_t)(what & 0xFF);
+            }
+            break;
+
+        default: goto bad;
+	}
+
+    return 0;
+
+    // Only reached if bad
+bad:
+    return -1;
+}
