@@ -2,6 +2,7 @@
 
 #include "opemu.h"
 #include "libudis86/extern.h"
+#include "SSEPlus/SSEPlus_REF.h"
 
 // log function debug
 #define LF	D("%s\n", __PRETTY_FUNCTION__);
@@ -24,6 +25,10 @@ union __attribute__((__packed__)) sse_reg {
 	uint64_t	uint64[2];
     double      fa64[2];
 	__uint128_t	uint128;
+	ssp_m128    ssp_m128;
+    __m128i     m128i;
+    __m128      m128;
+    __m64       m64[2];
 };
 typedef union sse_reg sse_reg_t;
 
@@ -50,6 +55,9 @@ struct sse3 {
 
 	// legacy mmx flag
 	uint8_t 		ismmx;
+
+	// Don't store result in mm/xmm
+    uint8_t         noxmmstoreres;
 };
 typedef struct sse3 sse3_t;
 

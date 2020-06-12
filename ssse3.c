@@ -22,189 +22,6 @@
 #include <linux/version.h>
 #include <linux/uaccess.h>
 
-
-/**
- * Store xmm register somewhere in memory
- */
-inline void _sstore_xmm (const uint8_t n, __uint128_t *where)
-{
-	switch (n) {
-case 0:  storedqu_template(0, where); break;
-case 1:  storedqu_template(1, where); break;
-case 2:  storedqu_template(2, where); break;
-case 3:  storedqu_template(3, where); break;
-case 4:  storedqu_template(4, where); break;
-case 5:  storedqu_template(5, where); break;
-case 6:  storedqu_template(6, where); break;
-case 7:  storedqu_template(7, where); break;
-case 8:  storedqu_template(8, where); break;
-case 9:  storedqu_template(9, where); break;
-case 10: storedqu_template(10, where); break;
-case 11: storedqu_template(11, where); break;
-case 12: storedqu_template(12, where); break;
-case 13: storedqu_template(13, where); break;
-case 14: storedqu_template(14, where); break;
-case 15: storedqu_template(15, where); break;
-}}
-
-/**
- * Load xmm register from memory
- */
-inline void _sload_xmm (const uint8_t n, const __uint128_t *where)
-{
-	switch (n) {
-case 0:  loaddqu_template(0, where); break;
-case 1:  loaddqu_template(1, where); break;
-case 2:  loaddqu_template(2, where); break;
-case 3:  loaddqu_template(3, where); break;
-case 4:  loaddqu_template(4, where); break;
-case 5:  loaddqu_template(5, where); break;
-case 6:  loaddqu_template(6, where); break;
-case 7:  loaddqu_template(7, where); break;
-case 8:  loaddqu_template(8, where); break;
-case 9:  loaddqu_template(9, where); break;
-case 10: loaddqu_template(10, where); break;
-case 11: loaddqu_template(11, where); break;
-case 12: loaddqu_template(12, where); break;
-case 13: loaddqu_template(13, where); break;
-case 14: loaddqu_template(14, where); break;
-case 15: loaddqu_template(15, where); break;
-}}
-
-/**
- * Store mmx register somewhere in memory
- */
-inline void _sstore_mmx (const uint8_t n, uint64_t *where)
-{
-	switch (n) {
-case 0:  storeq_template(0, where); break;
-case 1:  storeq_template(1, where); break;
-case 2:  storeq_template(2, where); break;
-case 3:  storeq_template(3, where); break;
-case 4:  storeq_template(4, where); break;
-case 5:  storeq_template(5, where); break;
-case 6:  storeq_template(6, where); break;
-case 7:  storeq_template(7, where); break;
-}}
-
-/**
- * Load mmx register from memory
- */
-inline void _sload_mmx (const uint8_t n, const uint64_t *where)
-{
-	switch (n) {
-case 0:  loadq_template(0, where); break;
-case 1:  loadq_template(1, where); break;
-case 2:  loadq_template(2, where); break;
-case 3:  loadq_template(3, where); break;
-case 4:  loadq_template(4, where); break;
-case 5:  loadq_template(5, where); break;
-case 6:  loadq_template(6, where); break;
-case 7:  loadq_template(7, where); break;
-}}
-
-inline void _sstore_gpr32 (ud_type_t n, uint32_t *where) {
-	struct pt_regs *regs;
-	switch (n) {
-		case UD_R_EAX:
-			*where = &regs->ax;
-			break;
-		case UD_R_ECX:
-			*where = &regs->cx;
-			break;
-		case UD_R_EDX:
-			*where = &regs->dx;
-			break;
-		case UD_R_EBX:
-			*where = &regs->bx;
-			break;
-		case UD_R_ESP:
-			*where = &regs->sp;
-			break;
-		case UD_R_EBP:
-			*where = &regs->bp;
-			break;
-		case UD_R_ESI:
-			*where = &regs->si;
-			break;
-		case UD_R_EDI:
-			*where = &regs->di;
-			break;
-	}
-}
-
-inline void _sstore_gpr64 (ud_type_t n, uint64_t *where) {
-	struct pt_regs *regs;
-	switch (n) {
-		case UD_R_RAX:
-			*where = &regs->ax;
-			break;
-		case UD_R_RCX:
-			*where = &regs->cx;
-			break;
-		case UD_R_RDX:
-			*where = &regs->dx;
-			break;
-		case UD_R_RBX:
-			*where = &regs->bx;
-			break;
-		case UD_R_RSP:
-			*where = &regs->sp;
-			break;
-		case UD_R_RBP:
-			*where = &regs->bp;
-			break;
-		case UD_R_RSI:
-			*where = &regs->si;
-			break;
-		case UD_R_RDI:
-			*where = &regs->di;
-			break;
-	}
-}
-
-inline void _fstore_xmm (const uint8_t n, float *where)
-{
-	switch (n) {
-case 0:  fstored_template(0, where); break;
-case 1:  fstored_template(1, where); break;
-case 2:  fstored_template(2, where); break;
-case 3:  fstored_template(3, where); break;
-case 4:  fstored_template(4, where); break;
-case 5:  fstored_template(5, where); break;
-case 6:  fstored_template(6, where); break;
-case 7:  fstored_template(7, where); break;
-case 8:  fstored_template(8, where); break;
-case 9:  fstored_template(9, where); break;
-case 10: fstored_template(10, where); break;
-case 11: fstored_template(11, where); break;
-case 12: fstored_template(12, where); break;
-case 13: fstored_template(13, where); break;
-case 14: fstored_template(14, where); break;
-case 15: fstored_template(15, where); break;
-}}
-
-inline void _fload_xmm (const uint8_t n, const float *where)
-{
-	switch (n) {
-case 0:  floadd_template(0, where); break;
-case 1:  floadd_template(1, where); break;
-case 2:  floadd_template(2, where); break;
-case 3:  floadd_template(3, where); break;
-case 4:  floadd_template(4, where); break;
-case 5:  floadd_template(5, where); break;
-case 6:  floadd_template(6, where); break;
-case 7:  floadd_template(7, where); break;
-case 8:  floadd_template(8, where); break;
-case 9:  floadd_template(9, where); break;
-case 10: floadd_template(10, where); break;
-case 11: floadd_template(11, where); break;
-case 12: floadd_template(12, where); break;
-case 13: floadd_template(13, where); break;
-case 14: floadd_template(14, where); break;
-case 15: floadd_template(15, where); break;
-}}
-
 /**
  * Load operands from memory/register, store in obj.
  * @return: 0 if success
@@ -359,6 +176,9 @@ int op_sse3x_run(op_t *op_obj)
 	ssse3_obj.op_obj = op_obj;
 	const uint32_t mnemonic = ud_insn_mnemonic(ssse3_obj.op_obj->ud_obj);
 	ssse3_func opf;
+
+	ssse3_obj.noxmmstoreres = 0;
+
 	switch (mnemonic) {
     case UD_Ipcmpestri:	opf = pcmpestri; goto sse42_common;
 	case UD_Ipcmpestrm:	opf = pcmpestrm; goto sse42_common;
@@ -368,35 +188,54 @@ int op_sse3x_run(op_t *op_obj)
     case UD_Ipopcnt:    opf = popcnt;    goto regop;
     case UD_Icrc32:     opf = crc32_op;  goto regop;
     
-    //SSE 4.1
-    //case UD_Iblendpd: opf = blendpd;	goto ssse3_common;
-    //case UD_Iblendps: opf = blendps;	goto ssse3_common;
-    //case UD_Ipblendw: opf = pblendw;	goto ssse3_common;
-    //case UD_Ipmovsxbd: opf = pmovsxbd;	goto ssse3_common;
-    //case UD_Ipmovsxbq: opf = pmovsxbq;	goto ssse3_common;
-    //case UD_Ipmovsxbw: opf = pmovsxbw;	goto ssse3_common;
-    //case UD_Ipmovsxdq: opf = pmovsxdq;	goto ssse3_common;
-    //case UD_Ipmovsxwd: opf = pmovsxwd;	goto ssse3_common;
-    //case UD_Ipmovsxwq: opf = pmovsxwq;	goto ssse3_common;
-    //case UD_Ipmovzxbd: opf = pmovzxbd;	goto ssse3_common;
-    //case UD_Ipmovzxbq: opf = pmovzxbq;	goto ssse3_common;
-    //case UD_Ipmovzxbw: opf = pmovzxbw;	goto ssse3_common;
-    //case UD_Ipmovzxdq: opf = pmovzxdq;	goto ssse3_common;
-    //case UD_Ipmovzxwd: opf = pmovzxwd;	goto ssse3_common;
-    //case UD_Ipmovzxwq: opf = pmovzxwq;	goto ssse3_common;
-    case UD_Iroundss: opf = roundss;	goto ssse3_common;
-    case UD_Ipextrb: opf = pextrb;	goto ssse3_common;
-    case UD_Ipextrd: opf = pextrd;	goto ssse3_common;
-    case UD_Ipextrq: opf = pextrq;	goto ssse3_common;
-    case UD_Iptest: opf = ptest;	goto ssse3_common;
-    case UD_Ipinsrb: opf = pinsrb;	goto ssse3_common;
-    case UD_Ipinsrd: opf = pinsrd;	goto ssse3_common;
-    case UD_Ipinsrq: opf = pinsrq;	goto ssse3_common;
-
-sse42_common:	
-
-	goto ssse3_common;
-
+    case UD_Iblendpd: opf = blendpd; goto sse41_common;
+    case UD_Iblendps: opf = blendps; goto sse41_common;
+    case UD_Iblendvpd: opf = blendvpd; goto sse41_common;
+    case UD_Idppd: opf = dppd; goto sse41_common;
+    case UD_Idpps: opf = dpps; goto sse41_common;
+    case UD_Iextractps: opf = extractps; ssse3_obj.noxmmstoreres = 1; goto sse41_common;
+    case UD_Iinsertps: opf = insertps; goto sse41_common;
+    //case UD_Imovntdqa: opf = movntdqa; goto sse41_common;
+    case UD_Impsadbw: opf = mpsadbw; goto sse41_common;
+    case UD_Ipackusdw: opf = packusdw; goto sse41_common;
+    case UD_Ipblendvb: opf = pblendvb; goto sse41_common;
+    case UD_Ipblendw: opf = pblendw; goto sse41_common;
+    case UD_Ipcmpeqq: opf = pcmpeqq; goto sse41_common;
+    //case UD_Ipextrb: opf = pextrb; goto sse41_common;
+    //case UD_Ipextrd: opf = pextrd; goto sse41_common;
+    //case UD_Ipextrq: opf = pextrq; goto sse41_common;
+    //case UD_Ipextrw: opf = pextrw; goto sse41_common;
+    case UD_Iphminposuw: opf = phminposuw; goto sse41_common;
+    case UD_Ipinsrb: opf = pinsrb; goto sse41_common;
+    case UD_Ipinsrd: opf = pinsrd; goto sse41_common;
+    case UD_Ipinsrq: opf = pinsrq; goto sse41_common;
+    case UD_Ipmaxsb: opf = pmaxsb; goto sse41_common;
+    case UD_Ipmaxsd: opf = pmaxsd; goto sse41_common;
+    case UD_Ipmaxud: opf = pmaxud; goto sse41_common;
+    case UD_Ipmaxuw: opf = pmaxuw; goto sse41_common;
+    case UD_Ipminsb: opf = pminsb; goto sse41_common;
+    case UD_Ipminsd: opf = pminsd; goto sse41_common;
+    case UD_Ipminud: opf = pminud; goto sse41_common;
+    case UD_Ipminuw: opf = pminuw; goto sse41_common;
+    case UD_Ipmovsxbd: opf = pmovsxbd; goto sse41_common;
+    case UD_Ipmovsxbq: opf = pmovsxbq; goto sse41_common;
+    case UD_Ipmovsxbw: opf = pmovsxbw; goto sse41_common;
+    case UD_Ipmovsxwd: opf = pmovsxwd; goto sse41_common;
+    case UD_Ipmovsxwq: opf = pmovsxwq; goto sse41_common;
+    case UD_Ipmovsxdq: opf = pmovsxdq; goto sse41_common;
+    case UD_Ipmovzxbd: opf = pmovzxbd; goto sse41_common;
+    case UD_Ipmovzxbq: opf = pmovzxbq; goto sse41_common;
+    case UD_Ipmovzxbw: opf = pmovzxbw; goto sse41_common;
+    case UD_Ipmovzxwd: opf = pmovzxwd; goto sse41_common;
+    case UD_Ipmovzxwq: opf = pmovzxwq; goto sse41_common;
+    case UD_Ipmovzxdq: opf = pmovzxdq; goto sse41_common;
+    case UD_Ipmuldq: opf = pmuldq; goto sse41_common;
+    case UD_Ipmulld: opf = pmulld; goto sse41_common;
+    case UD_Iptest: opf = ptest; goto sse41_common;
+    case UD_Iroundpd: opf = roundpd; goto sse41_common;
+    case UD_Iroundps: opf = roundps; goto sse41_common;
+    case UD_Iroundsd: opf = roundsd; goto sse41_common;
+    case UD_Iroundss: opf = roundss; goto sse41_common;
 
 	case UD_Ipsignb:	opf = psignb;	goto ssse3_common;
 	case UD_Ipsignw:	opf = psignw;	goto ssse3_common;
@@ -405,7 +244,9 @@ sse42_common:
 	case UD_Ipabsb:		opf = pabsb;	goto ssse3_common;
 	case UD_Ipabsw:		opf = pabsw;	goto ssse3_common;
 	case UD_Ipabsd:		opf = pabsd;	goto ssse3_common;
+
 	case UD_Ipalignr:	opf = palignr;	goto ssse3_common;
+
 	case UD_Ipshufb:	opf = pshufb;	goto ssse3_common;
 
 	case UD_Ipmulhrsw:	opf = pmulhrsw;	goto ssse3_common;
@@ -421,11 +262,14 @@ sse42_common:
 	case UD_Iphaddd:	opf = phaddd;	goto ssse3_common;
 
 	case UD_Iphaddsw:	opf = phaddsw;	goto ssse3_common;
+
+sse41_common:
+sse42_common:
 ssse3_common:
-	
 	ssse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
 	ssse3_obj.udo_dst = ud_insn_opr (op_obj->ud_obj, 0);
 	ssse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
+
 	// run some sanity checks,
 	if ((ssse3_obj.udo_dst->type != UD_OP_REG) && (ssse3_obj.udo_dst->type != UD_OP_MEM)) goto bad;
 	if ((ssse3_obj.udo_src->type != UD_OP_REG) && (ssse3_obj.udo_src->type != UD_OP_MEM)) goto bad;
@@ -455,21 +299,6 @@ regop:
     opf(&ssse3_obj);
 
 good:	
-	if (ssse3_obj.dst64) {
-
-		//printk("OPEMUq:  %s\n", ud_insn_asm(op_obj->ud_obj));
-		op_obj->dst64 = (uint8_t) 1;
-		op_obj->res64 = (uint64_t) ssse3_obj.res.uint64[0];
-	}
-	if (ssse3_obj.dst32) {
-		op_obj->dst32 = (uint8_t) 1;
-		op_obj->res32 = (uint32_t) ssse3_obj.res.uint32[0];
-	}
-	
-	
-	//uint64_t ek;
-	//asm __volatile__ ("movq %%rcx, %0" : "=m" (ek) :);
-	//printk("good rcx: %u", ek);
 	return 0;
 
     // Only reached if bad
@@ -477,26 +306,27 @@ bad:
 	return -1;
 }
 
-#define SATSW(x) ((x > 32767)? 32767 : ((x < -32768)? -32768 : x) )
-
 /**
  * Negate/zero/preserve
  */
 void psignb (ssse3_t *this)
 {
-	const int8_t *src = &this->src.int8[0];
-	const int8_t *dst = &this->dst.int8[0];
-	int8_t *res = &this->res.int8[0];
+    int count = (this->ismmx) ? 8 : 16;
 
-	int count = (this->ismmx) ? 8 : 16;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *dst;
-		else if (*src == 0) *res = 0;
-		else if (*src > 0) *res = *dst;
+    if (count == 16)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_sign_epi8_REF(*dst, *src);
+    } else if (count == 8) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_sign_pi8_REF(*dst, *src);
+    }
 }
 
 /**
@@ -504,19 +334,22 @@ void psignb (ssse3_t *this)
  */
 void psignw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 4 : 8;
 
-	int count = (this->ismmx) ? 4 : 8;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *dst;
-		else if (*src == 0) *res = 0;
-		else if (*src > 0) *res = *dst;
+    if (count == 8)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_sign_epi16_REF(*dst, *src);
+    } else if (count == 4) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_sign_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -524,19 +357,22 @@ void psignw (ssse3_t *this)
  */
 void psignd (ssse3_t *this)
 {
-	const int32_t *src = &this->src.int32[0];
-	const int32_t *dst = &this->dst.int32[0];
-	int32_t *res = &this->res.int32[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *dst;
-		else if (*src == 0) *res = 0;
-		else if (*src > 0) *res = *dst;
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_sign_epi32_REF(*dst, *src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_sign_pi32_REF(*dst, *src);
+    }
 }
 
 /**
@@ -544,18 +380,20 @@ void psignd (ssse3_t *this)
  */
 void pabsb (ssse3_t *this)
 {
-	const int8_t *src = &this->src.int8[0];
-	const int8_t *dst = &this->dst.int8[0];
-	int8_t *res = &this->res.int8[0];
+    int count = (this->ismmx) ? 8 : 16;
 
-	int count = (this->ismmx) ? 8 : 16;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *src;
-		else *res = *src;
+    if (count == 8)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_abs_epi8_REF(*src);
+    } else if (count == 4) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_abs_pi8_REF(*src);
+    }
 }
 
 /**
@@ -563,18 +401,20 @@ void pabsb (ssse3_t *this)
  */
 void pabsw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 4 : 8;
 
-	int count = (this->ismmx) ? 4 : 8;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *src;
-		else *res = *src;
+    if (count == 8)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_abs_epi16_REF(*src);
+    } else if (count == 4) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_abs_pi16_REF(*src);
+    }
 }
 
 /**
@@ -582,18 +422,20 @@ void pabsw (ssse3_t *this)
  */
 void pabsd (ssse3_t *this)
 {
-	const int32_t *src = &this->src.int32[0];
-	const int32_t *dst = &this->dst.int32[0];
-	int32_t *res = &this->res.int32[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src < 0) *res = - *src;
-		else *res = *src;
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_abs_epi32_REF(*src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_abs_pi32_REF(*src);
+    }
 }
 
 /**
@@ -601,26 +443,21 @@ void pabsd (ssse3_t *this)
  */ 
 void palignr (ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
+	const int imm = (const int)(this->udo_imm->lval.sbyte);
 
 	if (this->ismmx) {
-		__uint128_t temp1 = this->dst.uint64[0];
-		temp1 <<= 64;
-		temp1 |= this->src.uint64[0];
-		temp1 >>= (imm * 8);
-		this->res.uint128 = temp1;
+        __m64 *src = &this->dst.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_alignr_pi8_REF(*dst, *src, imm);
 	} else {
-        // AnV - Cast fixed
-		__uint128_t temp1[2];
-		uint8_t *shiftp; // that type matters for pointer arithmetic
-        uint64_t shiftpaddr;
-		temp1[0] = this->src.uint128;
-		temp1[1] = this->dst.uint128;
-		shiftp = (uint8_t*) &temp1[0];
-		shiftp += imm;
-        shiftpaddr = (uint64_t)shiftp;
-		this->res.uint128 = ((__uint128_t*) shiftpaddr);
-	}
+        __m128i *src = &this->dst.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
+
+        *res = ssp_alignr_epi8_REF(*dst, *src, imm);
+    }
 }
 
 /**
@@ -628,18 +465,22 @@ void palignr (ssse3_t *this)
  */
 void pshufb (ssse3_t *this)
 {
-	const uint8_t *src = &this->src.uint8[0];
-	uint8_t *res = &this->res.uint8[0];
+    int count = (this->ismmx) ? 8 : 16;
 
-	int count = (this->ismmx) ? 8 : 16;
-	uint8_t mask = (this->ismmx) ? 0b0111 : 0b1111;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		if (*src & 0x80) *res = 0;
-		else *res = this->dst.uint8[ *src & mask ];
+    if (count == 16)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src;
-	}
+        *res = ssp_shuffle_epi8_REF(*dst, *src);
+    } else if (count == 8) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_shuffle_pi8_REF(*dst, *src);
+    }
 }
 
 /**
@@ -647,21 +488,22 @@ void pshufb (ssse3_t *this)
  */
 void pmulhrsw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 4 : 8;
 
-	int count = (this->ismmx) ? 4 : 8;
-	int i;
-	for (i = 0; i < count; ++i) {
-		int32_t temp1 = (*dst) * (*src);
-		temp1 >>= 14;
-		temp1++;
-		temp1 >>= 1;
-		*res = temp1 & 0xFFFF;
+    if (count == 8)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res; ++src; ++dst;
-	}
+        *res = ssp_mulhrs_epi16_REF(*dst, *src);
+    } else if (count == 4) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_mulhrs_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -669,20 +511,22 @@ void pmulhrsw (ssse3_t *this)
  */
 void pmaddubsw (ssse3_t *this)
 {
-	const int8_t *src = &this->src.int8[0];
-	const uint8_t *dst = &this->dst.uint8[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 4 : 8;
 
-	int count = (this->ismmx) ? 4 : 8;
-	int i;
-	for (i = 0; i < count; ++i) {
-		int64_t temp1 = (src[0] * dst[0]) + (src[1] * dst[1]);
-		*res = SATSW(temp1);
+    if (count == 8)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		src += 2;
-		dst += 2;
-	}	
+        *res = ssp_maddubs_epi16_REF(*dst, *src);
+    } else if (count == 4) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
+
+        *res = ssp_maddubs_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -690,24 +534,22 @@ void pmaddubsw (ssse3_t *this)
  */
 void phsubw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = (dst[0]) - (dst[1]);
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = (src[0]) - (src[1]);
+        *res = ssp_hsub_epi16_REF(*dst, *src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hsub_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -715,24 +557,22 @@ void phsubw (ssse3_t *this)
  */
 void phsubd (ssse3_t *this)
 {
-	const int32_t *src = &this->src.int32[0];
-	const int32_t *dst = &this->dst.int32[0];
-	int32_t *res = &this->res.int32[0];
+    int count = (this->ismmx) ? 1 : 2;
 
-	int count = (this->ismmx) ? 1 : 2;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = (dst[0]) - (dst[1]);
+    if (count == 2)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = (src[0]) - (src[1]);
+        *res = ssp_hsub_epi32_REF(*dst, *src);
+    } else if (count == 1) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hsub_pi32_REF(*dst, *src);
+    }
 }
 
 /**
@@ -740,24 +580,22 @@ void phsubd (ssse3_t *this)
  */
 void phsubsw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = SATSW((dst[0]) - (dst[1]));
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = SATSW((src[0]) - (src[1]));
+        *res = ssp_hsubs_epi16_REF(*dst, *src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hsubs_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -765,24 +603,22 @@ void phsubsw (ssse3_t *this)
  */
 void phaddw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = dst[0] + dst[1];
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = src[0] + src[1];
+        *res = ssp_hadd_epi16_REF(*dst, *src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hadd_pi16_REF(*dst, *src);
+    }
 }
 
 /**
@@ -790,24 +626,22 @@ void phaddw (ssse3_t *this)
  */
 void phaddd (ssse3_t *this)
 {
-	const int32_t *src = &this->src.int32[0];
-	const int32_t *dst = &this->dst.int32[0];
-	int32_t *res = &this->res.int32[0];
+    int count = (this->ismmx) ? 1 : 2;
 
-	int count = (this->ismmx) ? 1 : 2;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = dst[0] + dst[1];
+    if (count == 2)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = src[0] + src[1];
+        *res = ssp_hadd_epi32_REF(*dst, *src);
+    } else if (count == 1) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->res.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hadd_pi32_REF(*dst, *src);
+    }
 }
 
 /**
@@ -815,23 +649,20 @@ void phaddd (ssse3_t *this)
  */
 void phaddsw (ssse3_t *this)
 {
-	const int16_t *src = &this->src.int16[0];
-	const int16_t *dst = &this->dst.int16[0];
-	int16_t *res = &this->res.int16[0];
+    int count = (this->ismmx) ? 2 : 4;
 
-	int count = (this->ismmx) ? 2 : 4;
-	int i;
-	for (i = 0; i < count; ++ i) {
-		*res = SATSW(dst[0] + dst[1]);
+    if (count == 4)
+    {
+        __m128i *src = &this->src.m128i;
+        __m128i *dst = &this->dst.m128i;
+        __m128i *res = &this->res.m128i;
 
-		++res;
-		dst += 2;
-	}
-	for (i = 0; i < count; ++ i) {
-		*res = SATSW(src[0] + src[1]);
+        *res = ssp_hadds_epi16_REF(*dst, *src);
+    } else if (count == 2) {
+        __m64 *src = &this->src.m64[0];
+        __m64 *dst = &this->dst.m64[0];
+        __m64 *res = &this->dst.m64[0];
 
-		++res;
-		src += 2;
-	}
+        *res = ssp_hadds_pi16_REF(*dst, *src);
+    }
 }
-

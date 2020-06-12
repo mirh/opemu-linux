@@ -1,386 +1,453 @@
 #include "ssse3_priv.h"
-#include <asm/fpu/internal.h>
+//#include <asm/fpu/internal.h>
 
-void blendpd(ssse3_t *this)
+void blendpd (ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
-    
-	uint64_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-    
-	if (imm & 1) {
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) {
-		temp2[1] = temp1[1];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128d *src = &this->src.m128d;
+    __m128d *dst = &this->dst.m128d;
+    __m128d *res = &this->res.m128d;
 
+    *res = ssp_blend_pd_REF(*dst, *src, imm);
 }
 
-void blendps(ssse3_t *this)
+void blendps (ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
-    
-	uint32_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-    
-	if (imm & 1) { //1st bit imm != 0
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) { //2nd bit imm != 0
-		temp2[1] = temp1[1];
-	}
-	if ((imm & 4) > 3) { //3rd bit imm != 0
-		temp2[2] = temp1[2];
-	}
-	if ((imm & 8) > 7) { //4th bit imm != 0
-		temp2[3] = temp1[3];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128 *src = &this->src.m128;
+    __m128 *dst = &this->dst.m128;
+    __m128 *res = &this->res.m128;
 
+    *res = ssp_blend_ps_REF(*dst, *src, imm);
 }
 
-void pblendw(ssse3_t *this)
+inline void blendvpd (ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
-    
-	uint16_t* temp1 = this->src.uint128;
-	uint16_t* temp2 = this->dst.uint128;
-    
-	if (imm & 1) { //1st bit imm != 0
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) { //2nd bit imm != 0
-		temp2[1] = temp1[1];
-	}
-	if ((imm & 4) > 3) { //3rd bit imm != 0
-		temp2[2] = temp1[2];
-	}
-	if ((imm & 8) > 7) { //4th bit imm != 0
-		temp2[3] = temp1[3];
-	}
-	if ((imm & 16) > 15) {
-		temp2[4] = temp1[4];
-	}
-	if ((imm & 32) > 31) {
-		temp2[5] = temp1[5];
-	}
-	if ((imm & 64) > 63) {
-		temp2[6] = temp1[6];
-	}
-	if ((imm & 128) > 127) {
-		temp2[7] = temp1[7];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
+    __m128d imm = (__m128d)(this->udo_imm->lval.uqqword);
+    __m128d *src = (__m128d *)(&this->src.m128);
+    __m128d *dst = (__m128d *)(&this->dst.m128);
+    __m128d *res = (__m128d *)(&this->res.m128);
 
+    *res = ssp_blendv_pd_REF(*dst, *src, imm);
 }
 
-void pmovsxbw(ssse3_t *this)
+inline void dppd (ssse3_t *this)
 {
-	int8_t* temp1 = this->src.uint128;
-	int16_t* temp2 = this->dst.uint128;
-	 
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128d *src = &this->src.m128d;
+    __m128d *dst = &this->dst.m128d;
+    __m128d *res = &this->res.m128d;
 
-	temp2[0] = temp1[0] > 127 ? 0xFF00 | temp1[0] : temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFF00 | temp1[1] : temp1[1];
-	temp2[2] = temp1[2] > 127 ? 0xFF00 | temp1[2] : temp1[2];
-	temp2[3] = temp1[3] > 127 ? 0xFF00 | temp1[3] : temp1[3];
-	temp2[4] = temp1[4] > 127 ? 0xFF00 | temp1[4] : temp1[4];
-	temp2[5] = temp1[5] > 127 ? 0xFF00 | temp1[5] : temp1[5];
-	temp2[6] = temp1[6] > 127 ? 0xFF00 | temp1[6] : temp1[6];
-	temp2[7] = temp1[7] > 127 ? 0xFF00 | temp1[7] : temp1[7];
-	
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_dp_pd_REF(*dst, *src, imm);
 }
 
-void pmovsxbd(ssse3_t *this)
+inline void dpps (ssse3_t *this)
 {
-	uint8_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 127 ? 0xFFFF00 | temp1[0] : (uint32_t) temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFFFF00 | temp1[1] : (uint32_t) temp1[1];
-	temp2[2] = temp1[2] > 127 ? 0xFFFF00 | temp1[2] : (uint32_t) temp1[2];
-	temp2[3] = temp1[3] > 127 ? 0xFFFF00 | temp1[3] : (uint32_t) temp1[3];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128 *src = &this->src.m128;
+    __m128 *dst = &this->dst.m128;
+    __m128 *res = &this->res.m128;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_dp_ps_REF(*dst, *src, imm);
 }
 
-void pmovsxbq(ssse3_t *this)
+inline void extractps (ssse3_t *this)
 {
-	uint8_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 127 ? 0xFFFFFFFFFFFFFF00 | temp1[0] : (uint64_t) temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFFFFFFFFFFFFFF00 | temp1[1] : (uint64_t) temp1[1];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    uint64_t *res = (uint64_t *)&this->res.uint64;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = (uint64_t)ssp_extract_epi32_REF(*src, imm);
 }
 
-void pmovsxwd(ssse3_t *this)
+inline void insertps (ssse3_t *this)
 {
-	uint16_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 32767 ? 0xFFFF0000 | temp1[0] : (uint32_t) temp1[0];
-	temp2[1] = temp1[1] > 32767 ? 0xFFFF0000 | temp1[1] : (uint32_t) temp1[1];
-	temp2[2] = temp1[2] > 32767 ? 0xFFFF0000 | temp1[2] : (uint32_t) temp1[2];
-	temp2[3] = temp1[3] > 32767 ? 0xFFFF0000 | temp1[3] : (uint32_t) temp1[3];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128 *src = &this->src.m128;
+    __m128 *dst = &this->dst.m128;
+    __m128 *res = &this->res.m128;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_insert_ps_REF(*dst, *src, imm);
 }
 
-void pmovsxwq(ssse3_t *this)
+/*
+inline void movntdqa (ssse3_t *this)
 {
-	uint16_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 32767 ? 0xFFFFFFFFFFFF0000 | temp1[0] : (uint64_t) temp1[0];
-	temp2[1] = temp1[1] > 32767 ? 0xFFFFFFFFFFFF0000 | temp1[1] : (uint64_t) temp1[1];
+    uint64_t  *src = &this->src.uint64;
+    uint64_t *res = &this->res.uint64;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res[0] = *src[0];
+    *res[1] = *src[1];
+}
+*/
+
+inline void mpsadbw (ssse3_t *this)
+{
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_mpsadbw_epu8_REF(*dst, *src, imm);
 }
 
-void pmovsxdq(ssse3_t *this)
+inline void packusdw (ssse3_t *this)
 {
-	uint32_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 0x7FFFFFFF ? 0xFFFFFFFF00000000 | temp1[0] : (uint64_t) temp1[0];
-	temp2[1] = temp1[1] > 0x7FFFFFFF ? 0xFFFFFFFF00000000 | temp1[1] : (uint64_t) temp1[1];
+    __m128i *src = (__m128i *)(&this->src.m128d);
+    __m128i *dst = (__m128i *)(&this->dst.m128d);
+    __m128i *res = (__m128i *)(&this->res.m128d);
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_packus_epi32_REF(*dst, *src);
 }
 
-
-void pmovzxbw(ssse3_t *this)
+inline void pblendvb (ssse3_t *this)
 {
-	int8_t* temp1 = this->src.uint128;
-	int16_t* temp2 = this->dst.uint128;
-	 
+    __m128i imm = (__m128i)(this->udo_imm->lval.uqqword);
+    __m128i *src = (__m128i *)(&this->src.m128d);
+    __m128i *dst = (__m128i *)(&this->dst.m128d);
+    __m128i *res = (__m128i *)(&this->res.m128d);
 
-	temp2[0] = temp1[0] > 127 ? 0xFF00 | temp1[0] : temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFF00 | temp1[1] : temp1[1];
-	temp2[2] = temp1[2] > 127 ? 0xFF00 | temp1[2] : temp1[2];
-	temp2[3] = temp1[3] > 127 ? 0xFF00 | temp1[3] : temp1[3];
-	temp2[4] = temp1[4] > 127 ? 0xFF00 | temp1[4] : temp1[4];
-	temp2[5] = temp1[5] > 127 ? 0xFF00 | temp1[5] : temp1[5];
-	temp2[6] = temp1[6] > 127 ? 0xFF00 | temp1[6] : temp1[6];
-	temp2[7] = temp1[7] > 127 ? 0xFF00 | temp1[7] : temp1[7];
-	
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_blendv_epi8_REF(*dst, *src, imm);
 }
 
-void pmovzxbd(ssse3_t *this)
+inline void pblendw (ssse3_t *this)
 {
-	uint8_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = temp1[0] > 127 ? 0xFFFF00 | temp1[0] : (uint32_t) temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFFFF00 | temp1[1] : (uint32_t) temp1[1];
-	temp2[2] = temp1[2] > 127 ? 0xFFFF00 | temp1[2] : (uint32_t) temp1[2];
-	temp2[3] = temp1[3] > 127 ? 0xFFFF00 | temp1[3] : (uint32_t) temp1[3];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_blend_epi16_REF(*dst, *src, imm);
 }
 
-void pmovzxbq(ssse3_t *this)
+inline void pcmpeqq (ssse3_t *this)
 {
-	uint8_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = 0x00000000000000FF & temp1[0];
-	temp2[1] = 0x00000000000000FF & temp1[1];
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_cmpeq_epi64_REF(*dst, *src);
 }
 
-void pmovzxwd(ssse3_t *this)
+/*
+inline void pextrb (ssse3_t *this)
 {
-	uint16_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = 0x0000FFFF & temp1[0];
-	temp2[1] = 0x0000FFFF & temp1[1];
-	temp2[2] = 0x0000FFFF & temp1[2];
-	temp2[3] = 0x0000FFFF & temp1[3];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_extract_epi8_REF(*src, imm);
 }
 
-void pmovzxwq(ssse3_t *this)
+inline void pextrd (ssse3_t *this)
 {
-	uint16_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = 0x000000000000FFFF & temp1[0];
-	temp2[1] = 0x000000000000FFFF & temp1[1];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_extract_epi32_REF(*src, imm);
 }
 
-void pmovzxdq(ssse3_t *this)
+inline void pextrq (ssse3_t *this)
 {
-	uint32_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
-	 
-	temp2[0] = 0x00000000FFFFFFFF & temp1[0];
-	temp2[1] = 0x00000000FFFFFFFF & temp1[1];
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
 
-	this->res.uint128 = ((__uint128_t*) temp2);
+    *res = ssp_extract_epi64_REF(*src, imm);
 }
 
-void pextrb(ssse3_t *this)
+inline void pextrw (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 0xF;
-	uint8_t temp1 = this->src.uint8[sel];
-    uint8_t islongmode = is_saved_state64(this->op_obj->state);
-	
-	if (this->udo_dst->type == UD_OP_MEM) {
-		this->res.uint8[0] = temp1;
-		printk("pextrb this->udo_dst->type == UD_OP_MEM this->res.uint8[0]: %hhu", temp1);
-	}
-	else if (islongmode && this->udo_dst->size == 64) {
-		this->res.uint64[0] = 0;
-		this->res.uint8[0] = temp1;
-		printk("pextrb islongmode && this->udo_dst->size == 64 this->res.uint64[0]: %hhu", temp1);
-	}
-	else {
-		this->res.uint32[0] = 0;
-		this->res.uint8[0] = temp1;
-		printk("pextrb this->res.uint32[0]: %hhu", temp1);
-	}
-	printk("OPEMU:  %s\n", ud_insn_asm(this->op_obj->ud_obj));
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
 
+    *res = ssp_extract_epi16_REF(*src, imm);
+}
+*/
+
+inline void phminposuw (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_minpos_epu16_REF(*src);
 }
 
-void pextrd(ssse3_t *this)
+inline void pinsrb (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 3;
-    this->res.uint32[0] = 0;
-    this->res.uint32[0] = this->src.uint32[sel];
-    //printk("temp1: %hhu", this->res.uint64[0]);
-    //printk("2temp1: %hhu", this->res.uint128);
-	printk("OPEMU: pextrd %s\n", ud_insn_asm(this->op_obj->ud_obj));
-    //printk("e %u", this->res.uint64[0]);
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *dst = &this->dst.m128i;
+    int *src = (int *)&this->src.int8;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_insert_epi8_REF(*dst, *src, imm);
 }
 
-void pextrq(ssse3_t *this)
+inline void pinsrd (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 1;
-	uint64_t temp1 = this->src.uint64[sel];
-    uint8_t islongmode = is_saved_state64(this->op_obj->state);
-	
-	if (this->udo_dst->type == UD_OP_MEM) {
-		this->res.uint128 = temp1;
-		printk("pextrq this->udo_dst->type == UD_OP_MEM this->res.uint128: %hhu", temp1);
-	}
-	else if (islongmode && this->udo_dst->size == 128) {
-		this->res.uint128 = 0;
-		this->res.uint128 = temp1;
-		printk("pextrq islongmode && this->udo_dst->size == 128 this->res.uint128: %hhu", temp1);
-	}
-	else if (islongmode && this->udo_dst->size == 64) {
-		this->res.uint64[0] = 0;
-		this->res.uint64[0] = temp1;
-		//printk("pextrq islongmode && this->udo_dst->size == 64 this->res.uint64[0]: %hhu", temp1);
-	}
-	else {
-		this->res.uint32[0] = 0;
-		this->res.uint32[0] = temp1;
-		printk("pextrq this->res.uint32[0]: %hhu", temp1);
-	}
-	//printk("OPEMU:  %s\n", ud_insn_asm(this->op_obj->ud_obj));
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *dst = &this->dst.m128i;
+    int *src = (int *)&this->src.int32;
+    __m128i *res = &this->res.m128i;
 
+    *res = ssp_insert_epi32_REF(*dst, *src, imm);
 }
 
-void roundss(ssse3_t *this)
+inline void pinsrq (ssse3_t *this)
 {
-	kernel_fpu_begin();
-	uint8_t imm = this->udo_imm->lval.ubyte;
-    int rc;
-    int msi = (imm >> 2) & 1;
-    if (msi == 0) {
-        rc = imm & 3;
-    } else {
-        //get mxcsr round control
-        rc = getmxcsr();
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128i *dst = &this->dst.m128i;
+    ssp_s64 *src = (ssp_s64 *)&this->src.int64;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_insert_epi64_REF(*dst, *src, imm);
+}
+
+inline void pmaxsb (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_max_epi8_REF(*dst, *src);
+}
+
+inline void pmaxsd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_max_epi32_REF(*dst, *src);
+}
+
+inline void pmaxud (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_max_epu32_REF(*dst, *src);
+}
+
+inline void pmaxuw (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_max_epu16_REF(*dst, *src);
+}
+
+inline void pminsb (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_min_epi8_REF(*dst, *src);
+}
+
+inline void pminsd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_min_epi32_REF(*dst, *src);
+}
+
+inline void pminud (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_min_epu32_REF(*dst, *src);
+}
+
+inline void pminuw (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_min_epu16_REF(*dst, *src);
+}
+
+inline void pmovsxbd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi8_epi32_REF(*src);
+}
+
+inline void pmovsxbq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi8_epi64_REF(*src);
+}
+
+inline void pmovsxbw (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi8_epi16_REF(*src);
+}
+
+inline void pmovsxwd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi16_epi32_REF(*src);
+}
+
+inline void pmovsxwq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi16_epi64_REF(*src);
+}
+
+inline void pmovsxdq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepi32_epi64_REF(*src);
+}
+
+inline void pmovzxbd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu8_epi32_REF(*src);
+}
+
+inline void pmovzxbq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu8_epi64_REF(*src);
+}
+
+inline void pmovzxbw (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu8_epi16_REF(*src);
+}
+
+inline void pmovzxwd (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu16_epi32_REF(*src);
+}
+
+inline void pmovzxwq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu16_epi64_REF(*src);
+}
+
+inline void pmovzxdq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_cvtepu32_epi64_REF(*src);
+}
+
+inline void pmuldq (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_mul_epi32_REF(*dst, *src);
+}
+
+inline void pmulld (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_mullo_epi32_REF(*dst, *src);
+}
+
+inline void ptest (ssse3_t *this)
+{
+    __m128i *src = &this->src.m128i;
+    __m128i *dst = &this->dst.m128i;
+
+//    __asm__("clc;"
+//            "clz;"
+//            "cla;"
+//            "clp;"
+//            "clo;");
+
+    if (ssp_testc_si128_REF(*dst, *src))
+    {
+        __asm__("stc;");
     }
-	this->res.fa32[0] = round_fp32(this->src.fa32[0], rc);
-	//printk("roundss this->res.uint32[0]: %hhu", this->res.uint32[0]);
-	//printk("roundss this->res.uint32[1]: %hhu", this->res.uint32[1]);
-	//printk("roundss this->res.uint32[2]: %hhu", this->res.uint32[2]);
-	//printk("roundss this->res.uint32[3]: %hhu", this->res.uint32[3]);
-	//printk("roundss temp1: %hhu", temp1);
-	//printk("roundss this->src.uint32[0]: %hhu", this->src.uint32[0]);
-	kernel_fpu_end();
-}
 
-
-
-void ptest(ssse3_t *this)
-{
-	struct pt_regs *regs;
-    uint64_t FLAGS;
-    FLAGS = regs->flags;
-    
-    sse_reg_t AND1, AND2;
-    
-    AND1.uint128 = this->src.uint128 & this->dst.uint128;
-    AND2.uint128 = this->src.uint128 & ~(this->dst.uint128);
-
-    if (AND1.uint128 == 0) {
-        FLAGS |= 0x00000040; //set ZF = 1
-    } else {
-        FLAGS = (FLAGS | 0x00000040) ^ 0x00000040;  //set ZF = 0
+/*    if (ssp_testz_si128_REF(*dst, *src))
+    {
+        __asm__("stz;");
     }
-    
-    if (AND2.uint128 == 0) {
-        FLAGS |= 0x00000001; //set CF = 1
-    } else {
-        FLAGS = (FLAGS | 0x00000001) ^ 0x00000001;  //set CF = 0
-    }
-
-    FLAGS = (FLAGS | 0x00000800) ^ 0x00000800;  //set OF = 0
-    FLAGS = (FLAGS | 0x00000010) ^ 0x00000010;  //set AF = 0
-    FLAGS = (FLAGS | 0x00000080) ^ 0x00000080;  //set SF = 0
-    FLAGS = (FLAGS | 0x00000004) ^ 0x00000004;  //set PF = 0
-    
-    regs->flags = FLAGS;
-
+*/
 }
 
-void pinsrb(ssse3_t *this)
+inline void roundpd (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 0xF;
-	//uint32_t mask = 0xFFFFFFFF << (sel * 32);
-    //printk("1temp1: %hhu", this->dst.uint128);
-	//uint32_t res = &this->res.uint128;
-	this->dst.uint8[sel] = this->src.uint8[0];
-	this->res.uint128 = this->dst.uint128;
-	printk("OPEMU: pinsrb %s\n", ud_insn_asm(this->op_obj->ud_obj));
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128d *src = &this->src.m128d;
+    __m128d *res = &this->res.m128d;
 
+    *res = ssp_round_pd_REF(*src, imm);
 }
 
-void pinsrd(ssse3_t *this)
+inline void roundps (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 3;
-	//uint32_t mask = 0xFFFFFFFF << (sel * 32);
-    //printk("1temp1: %hhu", this->dst.uint128);
-	//uint32_t res = &this->res.uint128;
-	__uint128_t mask = 0xFFFFFFFF << (sel * 32);
-	this->res.uint128 = (this->dst.uint128 & ~mask) | ((this->src.uint128 << (sel * 32)) & mask);
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128 *src = &this->src.m128;
+    __m128 *res = &this->res.m128;
+
+    *res = ssp_round_ps_REF(*src, imm);
 }
 
-void pinsrq(ssse3_t *this)
+inline void roundsd (ssse3_t *this)
 {
-	uint8_t sel = this->udo_imm->lval.ubyte & 1;
-	//uint32_t mask = 0xFFFFFFFF << (sel * 32);
-    //printk("1temp1: %hhu", this->dst.uint128);
-	//uint32_t res = &this->res.uint128;
-	this->dst.uint64[sel] = this->src.uint64[0];
-	this->res.uint128 = this->dst.uint128;
-	printk("OPEMU: pinsrq %s\n", ud_insn_asm(this->op_obj->ud_obj));
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128d *src = &this->src.m128d;
+    __m128d *dst = &this->dst.m128d;
+    __m128d *res = &this->res.m128d;
 
+    *res = ssp_round_sd_REF(*dst, *src, imm);
+}
+
+inline void roundss (ssse3_t *this)
+{
+    const int imm = (const int)(this->udo_imm->lval.sbyte);
+    __m128d *src = (__m128d *)(&this->src.m128);
+    __m128d *dst = (__m128d *)(&this->dst.m128);
+    __m128d *res = (__m128d *)(&this->res.m128);
+
+    *res = ssp_round_sd_REF(*dst, *src, imm);
 }

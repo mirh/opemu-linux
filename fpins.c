@@ -226,7 +226,7 @@ int isValidNumber_f32(float fp32) {
 	kernel_fpu_begin();
     sse_reg_t TMP;
     TMP.fa32[0] = fp32;
-    int32_t val = TMP.a32[0];
+    int32_t val = TMP.int32[0];
     
     if ( (val & 0x7F800000) == 0x7F800000 ) {
         return 0;
@@ -240,7 +240,7 @@ int isValidNumber_f64(double fp64) {
 	kernel_fpu_begin();
     sse_reg_t TMP;
     TMP.fa64[0] = fp64;
-    int64_t val = TMP.a64[0];
+    int64_t val = TMP.int64[0];
     
     if ( (val & 0x7FF0000000000000ll) == 0x7FF0000000000000ll )
     {
@@ -257,7 +257,7 @@ float SNanToQNaN_f32(float fp32) {
     int32_t retval;
     
     TMP.fa32[0] = fp32;
-    int32_t val = TMP.a32[0];
+    int32_t val = TMP.int32[0];
     
     // Check if the value is already a QNaN
     if ( (val & 0x00400000) != 0x00400000 )
@@ -267,7 +267,7 @@ float SNanToQNaN_f32(float fp32) {
         {
             // Convert SNan To QNaN
             retval = val | 0x00400000;
-            TMP.a32[0] = retval;
+            TMP.int32[0] = retval;
             fp32 = TMP.fa32[0];
         }
     }
@@ -281,7 +281,7 @@ double SNanToQNaN_f64(double fp64) {
     int64_t retval;
     
     TMP.fa64[0] = fp64;
-    int64_t val = TMP.a64[0];
+    int64_t val = TMP.int64[0];
     
     // Check if the value is already a QNaN
     if ( (val & 0x0008000000000000ll) != 0x0008000000000000ll )
@@ -291,7 +291,7 @@ double SNanToQNaN_f64(double fp64) {
         {
             // Convert SNan To QNaN
             retval = val | 0x0008000000000000ll;
-            TMP.a64[0] = retval;
+            TMP.int64[0] = retval;
             fp64 = TMP.fa64[0];
         }
     }
@@ -301,7 +301,7 @@ double SNanToQNaN_f64(double fp64) {
 int isNaN_f64(double fp64) {
     sse_reg_t tmp;
     tmp.fa64[0] = fp64;
-    int64_t val = tmp.a64[0];
+    int64_t val = tmp.int64[0];
     
     if ( (val & 0x7FF0000000000000ll) == 0x7FF0000000000000ll ) {
         if( (val & 0xFFFFFFFFFFFFF) != 0) {
@@ -315,7 +315,7 @@ int isNaN_f32(float fp32) {
  	kernel_fpu_begin();
    sse_reg_t tmp;
     tmp.fa32[0] = fp32;
-    int32_t val = tmp.a32[0];
+    int32_t val = tmp.int32[0];
     
     if ( (val & 0x7F800000) == 0x7F800000 ) {
         if( (val & 0x7FFFFF) != 0) {

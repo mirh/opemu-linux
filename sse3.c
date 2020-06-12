@@ -116,6 +116,8 @@ int op_sse3_run(const op_t *op_obj)
 	const uint32_t mnemonic = ud_insn_mnemonic(sse3_obj.op_obj->ud_obj);
 	sse3_func opf;
 
+    sse3_obj.noxmmstoreres = 0;
+
 	switch (mnemonic) {
 	case UD_Iaddsubpd:	opf = addsubpd;	goto sse3_common;
 	case UD_Iaddsubps:	opf = addsubps;	goto sse3_common;
@@ -127,17 +129,19 @@ int op_sse3_run(const op_t *op_obj)
     case UD_Imovddup:   opf = movddup; goto sse3_common;
     case UD_Imovshdup:  opf = movshdup; goto sse3_common;
     case UD_Imovsldup:  opf = movsldup; goto sse3_common;
-    case UD_Ifistp:     opf = fisttp; opf(&sse3_obj); goto good;
+    case UD_Ifisttp:    opf = fisttp; sse3_obj.noxmmstoreres=1; goto good;
     case UD_Imwait:     goto good;
     case UD_Imonitor:   goto good;
+
 sse3_common:
-	
 	sse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
 	sse3_obj.udo_dst = ud_insn_opr (op_obj->ud_obj, 0);
 	sse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
 
 	// run some sanity checks,
-	if (sse3_obj.udo_dst->type != UD_OP_REG) goto bad;
+	if ((sse3_obj.udo_dst->type != UD_OP_REG)
+        && (sse3_obj.udo_dst->type != UD_OP_MEM))
+        goto bad;
 	if ((sse3_obj.udo_src->type != UD_OP_REG)
 		&& (sse3_obj.udo_src->type != UD_OP_MEM))
 		goto bad;
@@ -152,7 +156,29 @@ sse3_common:
 
 	opf(&sse3_obj);
 
-	if (sse3_commit_results(&sse3_obj)) goto bad;
+if (sse3_obj.noxmmstoreres == 0)
+    {
+        if (sse3_commit_results(&sse3_obj)) goto bad;
+    } else if (sse3_obj.udo_dst->type == UD_OP_REG) {
+        if (store_reg(sse3_obj.op_obj->state, sse3_obj.udo_dst->base, sse3_obj.res.uint64[0]) != 0) goto bad;
+    } else if (sse3_obj.udo_dst->type == UD_OP_MEM) {
+        int64_t disp = 0;
+        uint8_t disp_size = sse3_obj.udo_dst->offset;
+        uint64_t address;
+
+        if (retrieve_reg (sse3_obj.op_obj->state, sse3_obj.udo_dst->base, NULL, &address) != 0) goto bad;
+
+        switch (disp_size) {
+            case 8: disp = sse3_obj.udo_dst->lval.sbyte; break;
+            case 16: disp = sse3_obj.udo_dst->lval.sword; break;
+            case 32: disp = sse3_obj.udo_dst->lval.sdword; break;
+            case 64: disp = sse3_obj.udo_dst->lval.sqword; break;
+        }
+
+        address += disp;
+
+        copy_from_user ((char*) &disp, address, disp_size);
+    }
 
 	goto good;
 
@@ -170,6 +196,8 @@ bad:
 void fisttp(sse3_t *this)
 {
     const unsigned char *bytep = (const unsigned char *)ud_insn_hex((ud_t *)&this->op_obj->ud_obj);
+    float *src = this->src.fa32;
+    float *res = this->res.fa32;
     uint8_t islongmode = is_saved_state64(this->op_obj->state);
     int ins_size = 0;
     uint8_t base = 0;
@@ -177,10 +205,12 @@ void fisttp(sse3_t *this)
     int8_t add = 0;
     uint8_t modrm = 0;
     uint64_t address = 0;
-    uint64_t reg_sel[8];
-    
+    uint64_t reg_sel[16];
+    uint8_t modrmmask = 0xF;
+
     if (islongmode)
     {
+        uint8_t modrmmask = 0xF;
         reg_sel[0] = this->op_obj->state64->ax;
         reg_sel[1] = this->op_obj->state64->cx;
         reg_sel[2] = this->op_obj->state64->dx;
@@ -189,7 +219,16 @@ void fisttp(sse3_t *this)
         reg_sel[5] = this->op_obj->state64->bp;
         reg_sel[6] = this->op_obj->state64->si;
         reg_sel[7] = this->op_obj->state64->di;
+        reg_sel[8] = this->op_obj->state64->r8;
+        reg_sel[9] = this->op_obj->state64->r9;
+        reg_sel[10] = this->op_obj->state64->r10;
+        reg_sel[11] = this->op_obj->state64->r11;
+        reg_sel[12] = this->op_obj->state64->r12;
+        reg_sel[13] = this->op_obj->state64->r13;
+        reg_sel[14] = this->op_obj->state64->r14;
+        reg_sel[15] = this->op_obj->state64->r15;
     } else {
+        uint8_t modrmmask = 0x7;
         reg_sel[0] = this->op_obj->state32->ax;
         reg_sel[1] = this->op_obj->state32->cx;
         reg_sel[2] = this->op_obj->state32->dx;
@@ -213,7 +252,7 @@ void fisttp(sse3_t *this)
             ins_size++;
             
             modrm = *bytep;
-            base = modrm & 0x7;
+            base = modrm & modrmmask;
             mod = (modrm & 0xC0) >> 6;
             
             if (mod == 0)
@@ -230,6 +269,7 @@ void fisttp(sse3_t *this)
             }
             
             fisttpl((double *)address);
+            //sse3_obj->res.uint64 = *(uint64_t *)address;
             
             ins_size++;
             
@@ -241,7 +281,7 @@ void fisttp(sse3_t *this)
             ins_size++;
             
             modrm = *bytep;
-            base = modrm & 0x7;
+            base = modrm & modrmmask;
             mod = (modrm & 0xC0) >> 6;
             
             if (mod == 0)
@@ -258,6 +298,7 @@ void fisttp(sse3_t *this)
             }
             
             fisttpq((long double *)address);
+            //sse3_obj->res.uint64 = *(uint64_t *)address;
             
             ins_size++;
             
@@ -269,7 +310,7 @@ void fisttp(sse3_t *this)
             ins_size++;
             
             modrm = *bytep;
-            base = modrm & 0x7;
+            base = modrm & modrmmask;
             mod = (modrm & 0xC0) >> 6;
             
             if (mod == 0)
@@ -286,6 +327,7 @@ void fisttp(sse3_t *this)
             }
             
             fisttps((float *)address);
+            //sse3_obj->res.uint64 = *(uint64_t *)address;
             
             ins_size++;
             
@@ -322,96 +364,86 @@ void fisttpq(long double *res)
 
 void addsubpd(sse3_t *this)
 {
-    const double *src = &this->src.fa64[0];
-    const double *dst = &this->dst.fa64[0];
-    double *res = &this->res.fa64[0];
-    res[0] = src[0] - dst[0];
-    res[1] = src[1] + dst[1];
+    __m128d *src = (__m128d *)(&this->src.m128[0]);
+    __m128d *dst = (__m128d *)(&this->dst.m128[0]);
+    __m128d *res = (__m128d *)(&this->res.m128[0]);
+
+    *res = ssp_addsub_pd_REF(*dst, *src);
 }
 
 void addsubps(sse3_t *this)
 {
-    const float *src = &this->src.fa32[0];
-    const float *dst = &this->dst.fa32[0];
-    float *res = &this->res.fa32[0];
-    res[0] = src[0] - dst[0];
-    res[1] = src[1] + dst[1];
-    res[2] = src[2] - dst[2];
-    res[3] = src[3] + dst[3];
+    __m128 *src = (__m128 *)(&this->src.m128[0]);
+    __m128 *dst = (__m128 *)(&this->dst.m128[0]);
+    __m128 *res = (__m128 *)(&this->res.m128[0]);
+
+    *res = ssp_addsub_ps_REF(*dst, *src);
 }
 
 void haddpd(sse3_t *this)
 {
-    const double *src = &this->src.fa64[0];
-    const double *dst = &this->dst.fa64[0];
-    double *res = &this->res.fa64[0];
-    res[0] = src[0] + src[1];
-    res[1] = dst[0] + dst[1];
+    __m128d *src = (__m128d *)(&this->src.m128[0]);
+    __m128d *dst = (__m128d *)(&this->dst.m128[0]);
+    __m128d *res = (__m128d *)(&this->res.m128[0]);
+
+    *res = ssp_hadd_pd_REF(*dst, *src);
 }
 
 void haddps(sse3_t *this)
 {
-    const float *src = &this->src.fa32[0];
-    const float *dst = &this->dst.fa32[0];
-    float *res = &this->res.fa32[0];
-    res[0] = src[0] + src[1];
-    res[1] = src[2] + src[3];
-    res[2] = dst[0] + dst[1];
-    res[3] = dst[2] + dst[3];
+    __m128 *src = (__m128 *)(&this->src.m128[0]);
+    __m128 *dst = (__m128 *)(&this->dst.m128[0]);
+    __m128 *res = (__m128 *)(&this->res.m128[0]);
+
+    *res = ssp_hadd_ps_REF(*dst, *src);
 }
 
 void hsubpd(sse3_t *this)
 {
-    const double *src = &this->src.fa64[0];
-    const double *dst = &this->dst.fa64[0];
-    double *res = &this->res.fa64[0];
-    res[0] = src[0] - src[1];
-    res[1] = dst[0] - dst[1];
+    __m128d *src = (__m128d *)(&this->src.m128[0]);
+    __m128d *dst = (__m128d *)(&this->dst.m128[0]);
+    __m128d *res = (__m128d *)(&this->res.m128[0]);
+
+    *res = ssp_hsub_pd_REF(*dst, *src);
 }
 
 void hsubps(sse3_t *this)
 {
-    const float *src = &this->src.fa32[0];
-    const float *dst = &this->dst.fa32[0];
-    float *res = &this->res.fa32[0];
-    res[0] = src[0] - src[1];
-    res[1] = src[2] - src[3];
-    res[2] = dst[0] - dst[1];
-    res[3] = dst[2] - dst[3];
+    __m128 *src = (__m128 *)(&this->src.m128[0]);
+    __m128 *dst = (__m128 *)(&this->dst.m128[0]);
+    __m128 *res = (__m128 *)(&this->res.m128[0]);
+
+    *res = ssp_hsub_ps_REF(*dst, *src);
 }
 
 void lddqu(sse3_t *this)
 {
-    const double *src = &this->src.fa64[0];
-    double *res = &this->res.fa64[0];
-    res[0] = src[0];
-    res[1] = src[1];
+    __m128i *src = &this->src.m128i;
+    __m128i *res = &this->res.m128i;
+
+    *res = ssp_lddqu_si128_REF(&*src);
 }
 
 void movddup(sse3_t *this)
 {
-    const double *src = &this->src.fa64[0];
-    double *res = &this->res.fa64[0];
-    res[0] = src[0];
-    res[1] = src[0];
+    __m128d *src = (__m128d *)(&this->src.m128);
+    __m128d *res = (__m128d *)(&this->res.m128);
+
+    *res = ssp_movedup_pd_REF(*src);
 }
 
 void movshdup(sse3_t *this)
 {
-    const float *src = &this->src.fa32[0];
-    float *res = &this->res.fa32[0];
-    res[0] = src[1];
-    res[1] = src[1];
-    res[2] = src[3];
-    res[3] = src[3];
+    __m128 *src = &this->src.m128;
+    __m128 *res = &this->res.m128;
+
+    *res = ssp_movehdup_ps_REF(*src);
 }
 
 void movsldup(sse3_t *this)
 {
-    const float *src = &this->src.fa32[0];
-    float *res = &this->res.fa32[0];
-    res[0] = src[0];
-    res[1] = src[0];
-    res[2] = src[2];
-    res[3] = src[2];
+    __m128 *src = &this->src.m128;
+    __m128 *res = &this->res.m128;
+
+    *res = ssp_moveldup_ps_REF(*src);
 }

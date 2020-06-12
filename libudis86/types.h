@@ -149,6 +149,8 @@ union ud_lval {
   uint32_t   udword;
   int64_t    sqword;
   uint64_t   uqword;
+  __int128_t   sqqword;
+  __uint128_t  uqqword;
   struct {
     uint16_t seg;
     uint32_t off;
