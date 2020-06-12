@@ -7,6 +7,7 @@ $(MODULE_NAME)-objs := trap_hook.o opemu.o ssse3.o sse3.o opemu_math.o sse42.o s
 
 obj-m += $(MODULE_NAME).o
 
+#CC=clang
 KBUILD_CFLAGS += -DDEBUG -g -O2 -march=native -mtune=native -mmmx -msse -msse2
 
 export KBUILD_CFLAGS
