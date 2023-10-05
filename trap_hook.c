@@ -18,6 +18,8 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 #include <linux/version.h>
+#include <asm/io.h>
+#include <linux/kprobes.h>
 
 #include "opemu.h"
 
@@ -57,6 +59,73 @@ struct ftrace_hook {
     struct ftrace_ops ops;
 };
 
+
+typedef unsigned long (*kln_p)(const char*);
+
+#define KPROBE_PRE_HANDLER(fname) static int __kprobes fname(struct kprobe *p, struct pt_regs *regs)
+
+long unsigned int kln_addr = 0;
+unsigned long (*kln_pointer)(const char* name) = NULL;
+
+static struct kprobe kp0, kp1;
+
+KPROBE_PRE_HANDLER(handler_pre0) {
+    kln_addr = (--regs->ip);
+
+    return 0;
+}
+
+KPROBE_PRE_HANDLER(handler_pre1) {
+    return 0;
+}
+
+static int do_register_kprobe(struct kprobe* kp, char* symbol_name, void* handler) {
+    int ret;
+
+    kp->symbol_name = symbol_name;
+    kp->pre_handler = handler;
+
+    ret = register_kprobe(kp);
+    if (ret < 0) {
+        pr_err("do_register_kprobe: failed to register for symbol %s, returning %d\n", symbol_name, ret);
+        return ret;
+    }
+
+    pr_info("Planted krpobe for symbol %s at %p\n", symbol_name, kp->addr);
+
+    return ret;
+}
+
+// this is the function that I have modified, as the name suggests it returns a pointer to the extracted kallsyms_lookup_name function
+kln_p get_kln_p(void) {
+    int status;
+
+    status = do_register_kprobe(&kp0, "kallsyms_lookup_name", handler_pre0);
+
+    if (status < 0) return NULL;
+
+    status = do_register_kprobe(&kp1, "kallsyms_lookup_name", handler_pre1);
+
+    if (status < 0) {
+        // cleaning initial krpobe
+        unregister_kprobe(&kp0);
+        return NULL;
+    }
+
+    unregister_kprobe(&kp0);
+    unregister_kprobe(&kp1);
+
+    pr_info("kallsyms_lookup_name address = 0x%lx\n", kln_addr);
+
+    kln_pointer = (unsigned long (*)(const char* name)) kln_addr;
+
+    return kln_pointer;
+}
+
+#define kallsyms_lookup_name(name) (get_kln_p())(name);
+
+//end kallsyms_lookup_name workaround
+
 static int fh_resolve_hook_address(struct ftrace_hook *hook)
 {
     hook->address = kallsyms_lookup_name(hook->name);
@@ -76,15 +145,15 @@ static int fh_resolve_hook_address(struct ftrace_hook *hook)
 }
 
 static void notrace fh_ftrace_thunk(unsigned long ip, unsigned long parent_ip,
-        struct ftrace_ops *ops, struct pt_regs *regs)
+        struct ftrace_ops *ops, struct ftrace_regs *regs)
 {
     struct ftrace_hook *hook = container_of(ops, struct ftrace_hook, ops);
 
 #if USE_FENTRY_OFFSET
-    regs->ip = (unsigned long) hook->function;
+    regs->regs.ip = (unsigned long) hook->function;
 #else
     if (!within_module(parent_ip, THIS_MODULE))
-        regs->ip = (unsigned long) hook->function;
+        regs->regs.ip = (unsigned long) hook->function;
 #endif
 }
 
@@ -110,7 +179,7 @@ int fh_install_hook(struct ftrace_hook *hook)
      */
     hook->ops.func = fh_ftrace_thunk;
     hook->ops.flags = FTRACE_OPS_FL_SAVE_REGS
-                    | FTRACE_OPS_FL_RECURSION_SAFE
+                    | FTRACE_OPS_FL_RECURSION
                     | FTRACE_OPS_FL_IPMODIFY;
 
     err = ftrace_set_filter_ip(&hook->ops, hook->address, 0, 0);
