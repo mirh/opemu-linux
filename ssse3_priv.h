@@ -3,7 +3,7 @@
 #include "opemu.h"
 #include "libudis86/extern.h"
 #include "fpins.h"
-#include <asm/fpu/internal.h>
+#include <asm/fpu/types.h>
 
 // log function debug
 #define LF	D("%s\n", __PRETTY_FUNCTION__);

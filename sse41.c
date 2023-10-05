@@ -1,5 +1,5 @@
 #include "ssse3_priv.h"
-#include <asm/fpu/internal.h>
+#include <asm/fpu/types.h>
 
 void blendpd(ssse3_t *this)
 {
