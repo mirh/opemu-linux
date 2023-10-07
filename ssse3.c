@@ -1,12 +1,12 @@
 /*
-             .d8888b.   .d8888b.   .d8888b.  8888888888 .d8888b.  
-            d88P  Y88b d88P  Y88b d88P  Y88b 888       d88P  Y88b 
-            Y88b.      Y88b.      Y88b.      888            .d88P 
-             "Y888b.    "Y888b.    "Y888b.   8888888       8888"  
-                "Y88b.     "Y88b.     "Y88b. 888            "Y8b. 
-                  "888       "888       "888 888       888    888 
-            Y88b  d88P Y88b  d88P Y88b  d88P 888       Y88b  d88P 
-             "Y8888P"   "Y8888P"   "Y8888P"  8888888888 "Y8888P"  
+             .d8888b.   .d8888b.   .d8888b.  8888888888 .d8888b.
+            d88P  Y88b d88P  Y88b d88P  Y88b 888       d88P  Y88b
+            Y88b.      Y88b.      Y88b.      888            .d88P
+             "Y888b.    "Y888b.    "Y888b.   8888888       8888"
+                "Y88b.     "Y88b.     "Y88b. 888            "Y8b.
+                  "888       "888       "888 888       888    888
+            Y88b  d88P Y88b  d88P Y88b  d88P 888       Y88b  d88P
+             "Y8888P"   "Y8888P"   "Y8888P"  8888888888 "Y8888P"
 */
 
 #include "opemu.h"
@@ -228,7 +228,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 	} else {
 		printk("mem");
 	}
-	
+
 	if (ssse3_obj->udo_src->type == UD_OP_REG) {
 		if (ud_insn_mnemonic(ssse3_obj->op_obj->ud_obj) == UD_Iroundss) {
 			_fstore_xmm (ssse3_obj->udo_src->base - UD_R_XMM0, &ssse3_obj->src.fa32[0]);
@@ -257,7 +257,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			int64_t disp = 0;
 			uint8_t disp_size = ssse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
@@ -281,7 +281,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			int64_t disp = 0;
 			uint8_t disp_size = ssse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
@@ -304,7 +304,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			printk("src mem else");
 		}
 	}
-	
+
     return 0;
     // Only reached if bad
 bad:	return -1;
@@ -317,7 +317,7 @@ bad:	return -1;
 int ssse3_commit_results(ssse3_t *ssse3_obj)
 {
 	if (ud_insn_mnemonic(ssse3_obj->op_obj->ud_obj) == UD_Iroundss) {
-		
+
 		_fload_xmm (ssse3_obj->udo_dst->base - UD_R_XMM0, (void*) &ssse3_obj->res.fa32[0]);
 	}
 	else if (ssse3_obj->ismmx) {
@@ -367,8 +367,10 @@ int op_sse3x_run(op_t *op_obj)
     case UD_Ipcmpgtq:	opf = pcmpgtq;   goto sse42_common;
     case UD_Ipopcnt:    opf = popcnt;    goto regop;
     case UD_Icrc32:     opf = crc32_op;  goto regop;
-    
+
     //SSE 4.1
+    case UD_Ipmaxud: opf = pmaxud;	goto ssse3_common;
+    case UD_Ipminud: opf = pminud;	goto ssse3_common;
     //case UD_Iblendpd: opf = blendpd;	goto ssse3_common;
     //case UD_Iblendps: opf = blendps;	goto ssse3_common;
     //case UD_Ipblendw: opf = pblendw;	goto ssse3_common;
@@ -384,6 +386,7 @@ int op_sse3x_run(op_t *op_obj)
     //case UD_Ipmovzxdq: opf = pmovzxdq;	goto ssse3_common;
     //case UD_Ipmovzxwd: opf = pmovzxwd;	goto ssse3_common;
     //case UD_Ipmovzxwq: opf = pmovzxwq;	goto ssse3_common;
+    //
     case UD_Iroundss: opf = roundss;	goto ssse3_common;
     case UD_Ipextrb: opf = pextrb;	goto ssse3_common;
     case UD_Ipextrd: opf = pextrd;	goto ssse3_common;
@@ -393,7 +396,7 @@ int op_sse3x_run(op_t *op_obj)
     case UD_Ipinsrd: opf = pinsrd;	goto ssse3_common;
     case UD_Ipinsrq: opf = pinsrq;	goto ssse3_common;
 
-sse42_common:	
+sse42_common:
 
 	goto ssse3_common;
 
@@ -422,7 +425,7 @@ sse42_common:
 
 	case UD_Iphaddsw:	opf = phaddsw;	goto ssse3_common;
 ssse3_common:
-	
+
 	ssse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
 	ssse3_obj.udo_dst = ud_insn_opr (op_obj->ud_obj, 0);
 	ssse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
@@ -434,7 +437,7 @@ ssse3_common:
 	if ((ssse3_obj.udo_dst->base >= UD_R_MM0) && (ssse3_obj.udo_dst->base <= UD_R_MM7)) {
 		ssse3_obj.ismmx = 1;
 	} else ssse3_obj.ismmx = 0;
-	
+
 	ssse3_obj.dst64 = ssse3_obj.dst32 = 0;
 
 	if (ssse3_grab_operands(&ssse3_obj) != 0) goto bad;
@@ -454,7 +457,7 @@ regop:
 
     opf(&ssse3_obj);
 
-good:	
+good:
 	if (ssse3_obj.dst64) {
 
 		//printk("OPEMUq:  %s\n", ud_insn_asm(op_obj->ud_obj));
@@ -465,8 +468,8 @@ good:
 		op_obj->dst32 = (uint8_t) 1;
 		op_obj->res32 = (uint32_t) ssse3_obj.res.uint32[0];
 	}
-	
-	
+
+
 	//uint64_t ek;
 	//asm __volatile__ ("movq %%rcx, %0" : "=m" (ek) :);
 	//printk("good rcx: %u", ek);
@@ -598,7 +601,7 @@ void pabsd (ssse3_t *this)
 
 /**
  * Concatenate and shift
- */ 
+ */
 void palignr (ssse3_t *this)
 {
 	uint8_t imm = this->udo_imm->lval.ubyte;
@@ -682,7 +685,7 @@ void pmaddubsw (ssse3_t *this)
 		++res;
 		src += 2;
 		dst += 2;
-	}	
+	}
 }
 
 /**
