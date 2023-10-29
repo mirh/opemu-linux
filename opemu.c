@@ -62,7 +62,7 @@ int opemu_utrap(struct pt_regs *regs)
 
 	bytes_skip = ud_disassemble(&ud_obj);
 	if ( bytes_skip == 0 ) goto bad;
-	const uint32_t mnemonic = ud_insn_mnemonic(&ud_obj);
+	//const uint32_t mnemonic = ud_insn_mnemonic(&ud_obj);
 	//printk("OPEMU:  %s\n", ud_insn_asm(&ud_obj));
 
 	int error = 0;
