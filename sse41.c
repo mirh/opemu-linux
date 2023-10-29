@@ -40,11 +40,11 @@ void blendpd(ssse3_t *this)
 {
     if((this->udo_imm->lval.ubyte & (1 << 0)))
     {
-        this->dst.fa32[0] = this->src.fa32[0];
+        this->dst.fa64[0] = this->src.fa64[0];
     }
     if((this->udo_imm->lval.ubyte & (1 << 2)))
     {
-        this->dst.fa32[1] = this->src.fa32[1];
+        this->dst.fa64[1] = this->src.fa64[1];
     }
     this->res.uint128 = this->dst.uint128;
 }
@@ -69,6 +69,11 @@ void blendps(ssse3_t *this)
 		temp2[3] = temp1[3];
 	}
 	this->res.uint128 = ((__uint128_t*) temp2);
+
+
+
+
+
 
 }
 
