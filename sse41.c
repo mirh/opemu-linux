@@ -40,8 +40,8 @@ void blendpd(ssse3_t *this)
 {
 	uint8_t imm = this->udo_imm->lval.ubyte;
 
-	uint64_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
+	uint64_t* temp1 = (uint64_t*)this->src.uint128;
+	uint64_t* temp2 = (uint64_t*)this->dst.uint128;
 
 	if (imm & 1) {
 		temp2 = temp1;
