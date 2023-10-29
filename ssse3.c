@@ -290,7 +290,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 
 			if (ssse3_obj->op_obj->ring0)
 				ssse3_obj->src.uint64[0] = * ((uint64_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint64[0], address, 8);
+			else copy_from_user((char*) &ssse3_obj->src.uint64[0], (uint64_t*)address, 8);
 		}
 		else if (ssse3_obj->udo_src->size == 128) {
 			// m128 load
@@ -314,7 +314,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 
 			if (ssse3_obj->op_obj->ring0)
 				ssse3_obj->src.uint128 = * ((__uint128_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint128, address, 16);
+			else copy_from_user((char*) &ssse3_obj->src.uint128, (uint64_t*)address, 16);
 		}
 		else {
 			printk("src mem else");
