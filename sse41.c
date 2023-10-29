@@ -60,37 +60,18 @@ void blendps(ssse3_t *this)
 
 void pblendw(ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
+    uint8_t imm   = this->udo_imm->lval.ubyte;
+    uint16_t * temp1 = this->src.uint16;
+    uint16_t * temp2 = this->dst.uint16;
 
-	uint16_t* temp1 = this->src.uint128;
-	uint16_t* temp2 = this->dst.uint128;
-
-	if (imm & 1) { //1st bit imm != 0
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) { //2nd bit imm != 0
-		temp2[1] = temp1[1];
-	}
-	if ((imm & 4) > 3) { //3rd bit imm != 0
-		temp2[2] = temp1[2];
-	}
-	if ((imm & 8) > 7) { //4th bit imm != 0
-		temp2[3] = temp1[3];
-	}
-	if ((imm & 16) > 15) {
-		temp2[4] = temp1[4];
-	}
-	if ((imm & 32) > 31) {
-		temp2[5] = temp1[5];
-	}
-	if ((imm & 64) > 63) {
-		temp2[6] = temp1[6];
-	}
-	if ((imm & 128) > 127) {
-		temp2[7] = temp1[7];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
-
+    this->res.uint16[0] = ((imm & (1 << 0))) ? temp2[0] = temp1[0] : temp2[0];
+    this->res.uint16[1] = ((imm & (1 << 1))) ? temp2[1] = temp1[1] : temp2[1];
+    this->res.uint16[2] = ((imm & (1 << 2))) ? temp2[2] = temp1[2] : temp2[2];
+    this->res.uint16[3] = ((imm & (1 << 3))) ? temp2[3] = temp1[3] : temp2[3];
+    this->res.uint16[4] = ((imm & (1 << 4))) ? temp2[4] = temp1[4] : temp2[4];
+    this->res.uint16[5] = ((imm & (1 << 5))) ? temp2[5] = temp1[5] : temp2[5];
+    this->res.uint16[6] = ((imm & (1 << 6))) ? temp2[6] = temp1[6] : temp2[6];
+    this->res.uint16[7] = ((imm & (1 << 7))) ? temp2[7] = temp1[7] : temp2[7];
 }
 
 void pmovsxbw(ssse3_t *this)
