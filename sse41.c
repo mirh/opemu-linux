@@ -3,7 +3,6 @@
 
 void pmaxud(ssse3_t *this)
 {
-    //printk("PMAXUD DETECTED - DEBUG - HELLO WORLD!\n");
     int32_t * temp1 = this->src.uint32;
     int32_t * temp2 = this->dst.uint32;
 
@@ -11,16 +10,10 @@ void pmaxud(ssse3_t *this)
     this->res.int32[1] = (temp1[1] > temp2[1]) ? temp1[1] : temp2[1];
     this->res.int32[2] = (temp1[2] > temp2[2]) ? temp1[2] : temp2[2];
     this->res.int32[3] = (temp1[3] > temp2[3]) ? temp1[3] : temp2[3];
-
-    //printk("A0=%d  B0=%d | MAX=%d\n",temp1[0],temp2[0],this->res.int32[0]);
-    //printk("A1=%d  B1=%d | MAX=%d\n",temp1[1],temp2[1],this->res.int32[1]);
-    //printk("A2=%d  B2=%d | MAX=%d\n",temp1[2],temp2[2],this->res.int32[2]);
-    //printk("A3=%d  B3=%d | MAX=%d\n",temp1[3],temp2[3],this->res.int32[3]);
 }
 
 void pminud(ssse3_t *this)
 {
-    //printk("PMINUD DETECTED - DEBUG - HELLO WORLD!\n");
     int32_t * temp1 = this->src.uint32;
     int32_t * temp2 = this->dst.uint32;
 
@@ -28,11 +21,6 @@ void pminud(ssse3_t *this)
     this->res.int32[1] = (temp1[1] < temp2[1]) ? temp1[1] : temp2[1];
     this->res.int32[2] = (temp1[2] < temp2[2]) ? temp1[2] : temp2[2];
     this->res.int32[3] = (temp1[3] < temp2[3]) ? temp1[3] : temp2[3];
-
-    //printk("A0=%d  B0=%d | MIN=%d\n",temp1[0],temp2[0],this->res.int32[0]);
-    //printk("A1=%d  B1=%d | MIN=%d\n",temp1[1],temp2[1],this->res.int32[1]);
-    //printk("A2=%d  B2=%d | MIN=%d\n",temp1[2],temp2[2],this->res.int32[2]);
-    //printk("A3=%d  B3=%d | MIN=%d\n",temp1[3],temp2[3],this->res.int32[3]);
 }
 
 
