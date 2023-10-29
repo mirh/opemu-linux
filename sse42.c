@@ -42,9 +42,9 @@ calc_str_len (__int128_t val, const int mode)
     } s;
     int i;
     int dim  = (mode & 1) == 0 ? 16 : 8;
-    
+
     s.x = val;
-    
+
     if ((mode & 1))
     {
         for (i = 0; i < dim; i++)
@@ -57,7 +57,7 @@ calc_str_len (__int128_t val, const int mode)
             if (s.c[i] == 0)
                 break;
     }
-    
+
     return i;
 }
 
@@ -66,7 +66,7 @@ override_invalid (unsigned char res[16][16], int la, int lb,
                   const int mode, int dim)
 {
     int i, j;
-    
+
     for (j = 0; j < dim; j++)
         for (i = 0; i < dim; i++)
             if (i < la && j >= lb)
@@ -99,10 +99,10 @@ calc_matrix (__int128_t a, int la, __int128_t b, int lb, const int mode,
         signed short ss[8];
         unsigned short us[8];
     } d, s;
-    
+
     d.x = a;
     s.x = b;
-    
+
     switch ((mode & 3))
     {
         case 0x00:
@@ -146,7 +146,7 @@ calc_matrix (__int128_t a, int la, __int128_t b, int lb, const int mode,
             }
             break;
     }
-    
+
     override_invalid (res, la, lb, mode, (mode & 1) == 0 ? 16 : 8);
 }
 
@@ -155,25 +155,25 @@ pcmpstr_calc_res (__int128_t a, int la, __int128_t b, int lb, const int mode)
 {
     unsigned char mtx[16][16];
     int i, j, k, dim, res = 0;
-    
+
     memset (mtx, 0, sizeof (mtx));
-    
+
     dim = (mode & 1) == 0 ? 16 : 8;
-    
+
     if (la < 0)
         la = -la;
-    
+
     if (lb < 0)
         lb = -lb;
-    
+
     if (la > dim)
         la = dim;
-    
+
     if (lb > dim)
         lb = dim;
-    
+
     calc_matrix (a, la, b, lb, mode, mtx);
-    
+
     switch ((mode & 0x0C))
     {
         case 0:
@@ -182,28 +182,28 @@ pcmpstr_calc_res (__int128_t a, int la, __int128_t b, int lb, const int mode)
                     if (mtx[i][j])
                         res |= (1 << i);
             break;
-            
+
         case 4:
             for (i = 0; i < dim; i += 2)
                 for(j = 0; j < dim; j++)
                     if (mtx[j][i] && mtx[j][i+1])
                         res |= (1 << j);
             break;
-            
+
         case 8:
             for(i = 0; i < dim; i++)
                 if (mtx[i][i])
                     res |= (1 << i);
             break;
-            
+
         case 12:
             for(i = 0; i < dim; i++)
             {
                 unsigned char val = 1;
-                
+
                 for (j = 0, k = i; j < dim - i && k < dim; j++, k++)
                     val &= mtx[k][j];
-                
+
                 if (val)
                     res |= (1 << i);
                 else
@@ -211,17 +211,17 @@ pcmpstr_calc_res (__int128_t a, int la, __int128_t b, int lb, const int mode)
             }
             break;
     }
-    
+
     switch ((mode & 0x30))
     {
         case 0x00:
         case 0x20:
             break;
-            
+
         case 0x10:
             res ^= -1;
             break;
-            
+
         case 0x30:
             for (i = 0; i < lb; i++)
                 if (res & (1 << i))
@@ -230,7 +230,7 @@ pcmpstr_calc_res (__int128_t a, int la, __int128_t b, int lb, const int mode)
                     res |= (1 << i);
             break;
     }
-    
+
     return res & ((dim == 8) ? 0xFF : 0xFFFF);
 }
 
@@ -241,9 +241,9 @@ cmp_indexed (__int128_t a, int la, __int128_t b, int lb,
     int i, ndx;
     int dim = (mode & 1) == 0 ? 16 : 8;
     int r2;
-    
+
     r2 = pcmpstr_calc_res (a, la, b, lb, mode);
-    
+
     ndx = dim;
     if ((mode & 0x40))
     {
@@ -263,7 +263,7 @@ cmp_indexed (__int128_t a, int la, __int128_t b, int lb,
                 break;
             }
     }
-    
+
     *res2 = r2;
     return ndx;
 }
@@ -281,21 +281,21 @@ cmp_flags (__int128_t a, int la, __int128_t b, int lb,
         unsigned char uc[16];
         unsigned short us[8];
     } d, s;
-    
+
     d.x = a;
     s.x = b;
-    
+
     /* CF: reset if (RES2 == 0), set otherwise.  */
     if (res2 != 0)
         flags |= CFLAG;
-    
+
     if (is_implicit)
     {
         /* ZF: set if any byte/word of src xmm operand is null, reset
          otherwise.
          SF: set if any byte/word of dst xmm operand is null, reset
          otherwise.  */
-        
+
         if (is_bytes_mode)
         {
             for (i = 0; i < 16; i++)
@@ -322,22 +322,22 @@ cmp_flags (__int128_t a, int la, __int128_t b, int lb,
         /* ZF: set if abs value of EDX/RDX < 16 (8), reset otherwise.
          SF: set if abs value of EAX/RAX < 16 (8), reset otherwise.  */
         int max_ind = is_bytes_mode ? 16 : 8;
-        
+
         if (la < 0)
             la = -la;
         if (lb < 0)
             lb = -lb;
-        
+
         if (lb < max_ind)
             flags |= ZFLAG;
         if (la < max_ind)
             flags |= SFLAG;
     }
-    
+
     /* OF: equal to RES2[0].  */
     if ((res2 & 0x1))
         flags |= OFLAG;
-    
+
     /* AF: Reset.
      PF: Reset.  */
     return flags;
@@ -349,10 +349,10 @@ cmp_ei (__int128_t *a, int la, __int128_t *b, int lb,
 {
     int res2;
     int index = cmp_indexed (*a, la, *b, lb, mode, &res2);
-    
+
     if (flags != NULL)
         *flags = cmp_flags (*a, la, *b, lb, mode, res2, 0);
-    
+
     return index;
 }
 
@@ -362,15 +362,15 @@ cmp_ii (__int128_t *a, __int128_t *b, const int mode, int *flags)
     int la, lb;
     int res2;
     int index;
-    
+
     la = calc_str_len (*a, mode);
     lb = calc_str_len (*b, mode);
-    
+
     index = cmp_indexed (*a, la, *b, lb, mode, &res2);
-    
+
     if (flags != NULL)
         *flags = cmp_flags (*a, la, *b, lb, mode, res2, 1);
-    
+
     return index;
 }
 
@@ -392,11 +392,11 @@ cmp_masked (__int128_t a, int la, __int128_t b, int lb,
         char c[4];
         short s[2];
     } r2;
-    
+
     r2.i = pcmpstr_calc_res (a, la, b, lb, mode);
-    
+
     ret.x = 0;
-    
+
     if (mode & 0x40)
     {
         for (i = 0; i < dim; i++)
@@ -412,9 +412,9 @@ cmp_masked (__int128_t a, int la, __int128_t b, int lb,
         else
             ret.c[0] = r2.c[0];
     }
-    
+
     *res2 = r2.i;
-    
+
     return ret.x;
 }
 
@@ -424,10 +424,10 @@ cmp_em (__int128_t *a, int la, __int128_t *b, int lb,
 {
     int res2;
     __int128_t mask = cmp_masked (*a, la, *b, lb, mode, &res2);
-    
+
     if (flags != NULL)
         *flags = cmp_flags (*a, la, *b, lb, mode, res2, 0);
-    
+
     return mask;
 }
 
@@ -437,14 +437,14 @@ cmp_im (__int128_t *a, __int128_t *b, const int mode, int *flags)
     int la, lb;
     int res2;
     __int128_t mask;
-    
+
     la = calc_str_len (*a, mode);
     lb = calc_str_len (*b, mode);
-    
+
     mask = cmp_masked (*a, la, *b, lb, mode, &res2);
     if (flags != NULL)
         *flags = cmp_flags (*a, la, *b, lb, mode, res2, 1);
-    
+
     return mask;
 }
 
@@ -502,42 +502,42 @@ void pcmpestri	(ssse3_t *this)
 	const int imm = this->udo_imm->lval.ubyte;
 	//const int issigned = imm & 0b10;
     uint8_t islongmode = is_saved_state64(this->op_obj->state);
-    
+
 	__int128_t *src = &(this->src.int128);
 	__int128_t *dst = &(this->dst.int128);
-    
+
 	int res1 = 0, res2 = 0;
-    
+
 	/* thanks for excusing me the nesting */
     // FIXME: How to get la + lb parameters?
     res1 = cmp_ei(src, sizeof(*src), dst, sizeof(*dst), imm, &res2);
-    
+
 #if 0
 	printf("src: ");
 	print128(this->src);
 	printf("\n");
-    
+
 	printf("dst: ");
 	print128(this->dst);
 	printf("\n");
-    
+
 	printf("res: ");
 	print128(this->res);
 	printf("\n");
-    
+
 	printf("and the int2 is %02x\n", res2);
 	printf("and the index  is %d\n", res1);
 #endif
-    
+
     if (islongmode)
     {
         this->op_obj->state64->cx = res1;
-        
+
         this->op_obj->state64->flags &= ~ 0b100011010101;
         this->op_obj->state64->flags |= res2;
     } else {
         this->op_obj->state32->cx = res1;
-        
+
         this->op_obj->state32->flags &= ~ 0b100011010101;
         this->op_obj->state32->flags |= res2; // C
     }
@@ -548,34 +548,34 @@ void pcmpestrm	(ssse3_t *this)
 	const int imm = this->udo_imm->lval.ubyte;
 	//const int issigned = imm & 0b10;
     uint8_t islongmode = is_saved_state64(this->op_obj->state);
-    
+
 	__int128_t *src = &(this->src.int128);
 	__int128_t *dst = &(this->dst.int128);
     __int128_t *res = &(this->res.int128);
-    
+
 	int res2 = 0;
-    
+
 	/* thanks for excusing me the nesting */
     // FIXME: How to get la + lb parameters?
     *res = cmp_em(src, sizeof(*src), dst, sizeof(*dst), imm, &res2);
-    
+
 #if 0
 	printf("src: ");
 	print128(this->src);
 	printf("\n");
-    
+
 	printf("dst: ");
 	print128(this->dst);
 	printf("\n");
-    
+
 	printf("res: ");
 	print128(this->res);
 	printf("\n");
-    
+
 	printf("and the int2 is %02x\n", res2);
 	printf("and the index  is %d\n", res1);
 #endif
-    
+
     if (islongmode)
     {
         this->op_obj->state64->flags &= ~ 0b100011010101;
@@ -606,9 +606,18 @@ static void getmemoperand(ssse3_t *this, uint8_t *size, uint64_t *retval)
     address += disp;
 
     if (this->op_obj->ring0)
+    {
         retval[0] = *((uint64_t*)(address));
-    else
-        copy_from_user ((char*) &retval[0], address, 8);
+    }
+    else{
+        unsigned long status =
+        copy_from_user ((char*) &retval[0], (uint64_t*)address, 8);
+        if(status != 0)
+        {
+            //FIXME: need handle, no just allert
+            printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+        }
+    }
 }
 
 void pcmpistrm	(ssse3_t *this)
@@ -616,34 +625,34 @@ void pcmpistrm	(ssse3_t *this)
 	const int imm = this->udo_imm->lval.ubyte;
 	//const int issigned = imm & 0b10;
     uint8_t islongmode = is_saved_state64(this->op_obj->state);
-    
+
 	__int128_t *src = &(this->src.int128);
 	__int128_t *dst = &(this->dst.int128);
     __int128_t *res = &(this->res.int128);
-    
+
 	int res2 = 0;
-    
+
 	/* thanks for excusing me the nesting */
-    
+
     *res = cmp_im(src, dst, imm, &res2);
-    
+
 #if 0
 	printf("src: ");
 	print128(this->src);
 	printf("\n");
-    
+
 	printf("dst: ");
 	print128(this->dst);
 	printf("\n");
-    
+
 	printf("res: ");
 	print128(this->res);
 	printf("\n");
-    
+
 	printf("and the int2 is %02x\n", res2);
 	printf("and the index  is %d\n", res1);
 #endif
-    
+
     if (islongmode)
     {
         this->op_obj->state64->flags &= ~ 0b100011010101;
