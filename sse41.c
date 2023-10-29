@@ -64,20 +64,17 @@ void pblendw(ssse3_t *this)
 
 void pmovsxbw(ssse3_t *this)
 {
-	int8_t* temp1 = this->src.uint128;
-	int16_t* temp2 = this->dst.uint128;
+    int8_t  * temp1 = this->src.uint8;
+    int16_t * temp2 = this->dst.uint16;
 
-
-	temp2[0] = temp1[0] > 127 ? 0xFF00 | temp1[0] : temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFF00 | temp1[1] : temp1[1];
-	temp2[2] = temp1[2] > 127 ? 0xFF00 | temp1[2] : temp1[2];
-	temp2[3] = temp1[3] > 127 ? 0xFF00 | temp1[3] : temp1[3];
-	temp2[4] = temp1[4] > 127 ? 0xFF00 | temp1[4] : temp1[4];
-	temp2[5] = temp1[5] > 127 ? 0xFF00 | temp1[5] : temp1[5];
-	temp2[6] = temp1[6] > 127 ? 0xFF00 | temp1[6] : temp1[6];
-	temp2[7] = temp1[7] > 127 ? 0xFF00 | temp1[7] : temp1[7];
-
-	this->res.uint128 = ((__uint128_t*) temp2);
+    this->res.uint16[0] = (temp1[0] > 127) ? temp2[0] = (0xFF00 | temp1[0]) : (temp2[0] = temp1[0]);
+    this->res.uint16[1] = (temp1[1] > 127) ? temp2[1] = (0xFF00 | temp1[1]) : (temp2[1] = temp1[1]);
+    this->res.uint16[2] = (temp1[2] > 127) ? temp2[2] = (0xFF00 | temp1[2]) : (temp2[2] = temp1[2]);
+    this->res.uint16[3] = (temp1[3] > 127) ? temp2[3] = (0xFF00 | temp1[3]) : (temp2[3] = temp1[3]);
+    this->res.uint16[4] = (temp1[4] > 127) ? temp2[4] = (0xFF00 | temp1[4]) : (temp2[4] = temp1[4]);
+    this->res.uint16[5] = (temp1[5] > 127) ? temp2[5] = (0xFF00 | temp1[5]) : (temp2[5] = temp1[5]);
+    this->res.uint16[6] = (temp1[6] > 127) ? temp2[6] = (0xFF00 | temp1[6]) : (temp2[6] = temp1[6]);
+    this->res.uint16[7] = (temp1[7] > 127) ? temp2[7] = (0xFF00 | temp1[7]) : (temp2[7] = temp1[7]);
 }
 
 void pmovsxbd(ssse3_t *this)
