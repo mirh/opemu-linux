@@ -90,13 +90,11 @@ void pmovsxbd(ssse3_t *this)
 
 void pmovsxbq(ssse3_t *this)
 {
-	uint8_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
+    int8_t  * temp1 = this->src.uint8;
+    int64_t * temp2 = this->dst.uint64;
 
-	temp2[0] = temp1[0] > 127 ? 0xFFFFFFFFFFFFFF00 | temp1[0] : (uint64_t) temp1[0];
-	temp2[1] = temp1[1] > 127 ? 0xFFFFFFFFFFFFFF00 | temp1[1] : (uint64_t) temp1[1];
-
-	this->res.uint128 = ((__uint128_t*) temp2);
+    this->res.uint64[0] = (temp1[0] > 127) ? temp2[0] = (0xFFFFFFFFFFFFFF00 | temp1[0]) : (temp2[0] = temp1[0]);
+    this->res.uint64[1] = (temp1[1] > 127) ? temp2[1] = (0xFFFFFFFFFFFFFF00 | temp1[1]) : (temp2[1] = temp1[1]);
 }
 
 void pmovsxwd(ssse3_t *this)
