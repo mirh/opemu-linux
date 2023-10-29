@@ -104,7 +104,14 @@ case 7:  loadq_template(7, where); break;
 }}
 
 inline void _sstore_gpr32 (ud_type_t n, uint32_t *where) {
-	struct pt_regs *regs;
+/*
+    FIXME: This function nothing do. Getting regisers value from trash pointer
+           and this function write unsigned long in uint32 (unsigned int) ned
+           set ifdefs in result implementation for serarate 64 and 32 mashines
+           but this functions call only for 32bit and we can just cast type?
+    https://elixir.bootlin.com/linux/v6.0/source/arch/x86/include/asm/ptrace.h
+    ---------------------------------------------------------------------------
+    struct pt_regs *regs;
 	switch (n) {
 		case UD_R_EAX:
 			*where = &regs->ax;
@@ -131,9 +138,17 @@ inline void _sstore_gpr32 (ud_type_t n, uint32_t *where) {
 			*where = &regs->di;
 			break;
 	}
+*/
 }
 
 inline void _sstore_gpr64 (ud_type_t n, uint64_t *where) {
+/*
+    FIXME: This function nothing do. Getting regisers value from trash pointer
+           and this function write unsigned long in uint32 (unsigned int) ned
+           set ifdefs in result implementation for serarate 64 and 32 mashines
+           but this functions call only for 32bit and we can just cast type?
+    https://elixir.bootlin.com/linux/v6.0/source/arch/x86/include/asm/ptrace.h
+    ---------------------------------------------------------------------------
 	struct pt_regs *regs;
 	switch (n) {
 		case UD_R_RAX:
@@ -161,6 +176,7 @@ inline void _sstore_gpr64 (ud_type_t n, uint64_t *where) {
 			*where = &regs->di;
 			break;
 	}
+*/
 }
 
 inline void _fstore_xmm (const uint8_t n, float *where)
