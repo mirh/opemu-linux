@@ -289,8 +289,19 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			address += disp;
 
 			if (ssse3_obj->op_obj->ring0)
+            {
 				ssse3_obj->src.uint64[0] = * ((uint64_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint64[0], (uint64_t*)address, 8);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &ssse3_obj->src.uint64[0], (uint64_t*)address, 8);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 		else if (ssse3_obj->udo_src->size == 128) {
 			// m128 load
@@ -313,8 +324,19 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			address += disp;
 
 			if (ssse3_obj->op_obj->ring0)
+            {
 				ssse3_obj->src.uint128 = * ((__uint128_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint128, (uint64_t*)address, 16);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &ssse3_obj->src.uint128, (uint64_t*)address, 16);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 		else {
 			printk("src mem else");
@@ -639,7 +661,6 @@ void palignr (ssse3_t *this)
 		shiftp += imm;
         shiftpaddr = (uint64_t)shiftp;//XXX:why?
 		this->res.uint128 = *((__uint128_t*) shiftpaddr);
-
 	}
 }
 
