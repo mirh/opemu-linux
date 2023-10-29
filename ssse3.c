@@ -632,13 +632,14 @@ void palignr (ssse3_t *this)
         // AnV - Cast fixed
 		__uint128_t temp1[2];
 		uint8_t *shiftp; // that type matters for pointer arithmetic
-        uint64_t shiftpaddr;
+        uint64_t shiftpaddr; //XXX:why this need?
 		temp1[0] = this->src.uint128;
 		temp1[1] = this->dst.uint128;
 		shiftp = (uint8_t*) &temp1[0];
 		shiftp += imm;
-        shiftpaddr = (uint64_t)shiftp;
-		this->res.uint128 = ((__uint128_t*) shiftpaddr);
+        shiftpaddr = (uint64_t)shiftp;//XXX:why?
+		this->res.uint128 = *((__uint128_t*) shiftpaddr);
+
 	}
 }
 
