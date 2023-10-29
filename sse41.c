@@ -38,43 +38,24 @@ void pminud(ssse3_t *this)
 
 void blendpd(ssse3_t *this)
 {
-    if((this->udo_imm->lval.ubyte & (1 << 0)))
-    {
-        this->dst.fa64[0] = this->src.fa64[0];
-    }
-    if((this->udo_imm->lval.ubyte & (1 << 2)))
-    {
-        this->dst.fa64[1] = this->src.fa64[1];
-    }
-    this->res.uint128 = this->dst.uint128;
+    uint8_t  imm   = this->udo_imm->lval.ubyte;
+    double * temp1 = this->src.fa64;
+    double * temp2 = this->dst.fa64;
+
+    this->res.fa64[0] = ((imm & (1 << 0))) ? temp2[0] = temp1[0] : temp2[0];
+    this->res.fa64[1] = ((imm & (1 << 1))) ? temp2[1] = temp1[1] : temp2[1];
 }
 
 void blendps(ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
+    uint8_t imm   = this->udo_imm->lval.ubyte;
+    float * temp1 = this->src.fa32;
+    float * temp2 = this->dst.fa32;
 
-	uint32_t* temp1 = this->src.uint128;
-	uint32_t* temp2 = this->dst.uint128;
-
-	if (imm & 1) { //1st bit imm != 0
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) { //2nd bit imm != 0
-		temp2[1] = temp1[1];
-	}
-	if ((imm & 4) > 3) { //3rd bit imm != 0
-		temp2[2] = temp1[2];
-	}
-	if ((imm & 8) > 7) { //4th bit imm != 0
-		temp2[3] = temp1[3];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
-
-
-
-
-
-
+    this->res.fa32[0] = ((imm & (1 << 0))) ? temp2[0] = temp1[0] : temp2[0];
+    this->res.fa32[1] = ((imm & (1 << 1))) ? temp2[1] = temp1[1] : temp2[1];
+    this->res.fa32[2] = ((imm & (1 << 2))) ? temp2[2] = temp1[2] : temp2[2];
+    this->res.fa32[3] = ((imm & (1 << 3))) ? temp2[3] = temp1[3] : temp2[3];
 }
 
 void pblendw(ssse3_t *this)
