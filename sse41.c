@@ -38,19 +38,15 @@ void pminud(ssse3_t *this)
 
 void blendpd(ssse3_t *this)
 {
-	uint8_t imm = this->udo_imm->lval.ubyte;
-
-	uint64_t* temp1 = (uint64_t*)this->src.uint128;
-	uint64_t* temp2 = (uint64_t*)this->dst.uint128;
-
-	if (imm & 1) {
-		temp2 = temp1;
-	}
-	if ((imm & 2) > 1) {
-		temp2[1] = temp1[1];
-	}
-	this->res.uint128 = ((__uint128_t*) temp2);
-
+    if((this->udo_imm->lval.ubyte & (1 << 0)))
+    {
+        this->dst.fa32[0] = this->src.fa32[0];
+    }
+    if((this->udo_imm->lval.ubyte & (1 << 2)))
+    {
+        this->dst.fa32[1] = this->src.fa32[1];
+    }
+    this->res.uint128 = this->dst.uint128;
 }
 
 void blendps(ssse3_t *this)
