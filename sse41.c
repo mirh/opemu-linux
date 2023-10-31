@@ -109,6 +109,7 @@ void pmovsxwd(ssse3_t *this)
 }
 
 void pmovsxwq(ssse3_t *this)
+{
     int16_t * temp1 = this->src.uint16;
     int64_t * temp2 = this->dst.uint64;
 
@@ -118,13 +119,11 @@ void pmovsxwq(ssse3_t *this)
 
 void pmovsxdq(ssse3_t *this)
 {
-	uint32_t* temp1 = this->src.uint128;
-	uint64_t* temp2 = this->dst.uint128;
+    uint32_t * temp1 = this->src.uint32;
+    uint64_t * temp2 = this->dst.uint64;
 
-	temp2[0] = temp1[0] > 0x7FFFFFFF ? 0xFFFFFFFF00000000 | temp1[0] : (uint64_t) temp1[0];
-	temp2[1] = temp1[1] > 0x7FFFFFFF ? 0xFFFFFFFF00000000 | temp1[1] : (uint64_t) temp1[1];
-
-	this->res.uint128 = ((__uint128_t*) temp2);
+    this->res.uint64[0] = (temp1[0] > 0x7FFFFFFF) ? temp2[0] = (0xFFFFFFFF00000000| temp1[0]) : (temp2[0] = temp1[0]);
+    this->res.uint64[1] = (temp1[1] > 0x7FFFFFFF) ? temp2[1] = (0xFFFFFFFF00000000| temp1[1]) : (temp2[1] = temp1[1]);
 }
 
 
