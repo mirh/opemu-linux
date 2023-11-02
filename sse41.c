@@ -3,8 +3,8 @@
 
 void pmaxud(ssse3_t *this)
 {
-    int32_t * temp1 = this->src.uint32;
-    int32_t * temp2 = this->dst.uint32;
+    uint32_t * temp1 = this->src.uint32;
+    uint32_t * temp2 = this->dst.uint32;
 
     this->res.int32[0] = (temp1[0] > temp2[0]) ? temp1[0] : temp2[0];
     this->res.int32[1] = (temp1[1] > temp2[1]) ? temp1[1] : temp2[1];
@@ -14,15 +14,14 @@ void pmaxud(ssse3_t *this)
 
 void pminud(ssse3_t *this)
 {
-    int32_t * temp1 = this->src.uint32;
-    int32_t * temp2 = this->dst.uint32;
+    uint32_t * temp1 = this->src.uint32;
+    uint32_t * temp2 = this->dst.uint32;
 
     this->res.int32[0] = (temp1[0] < temp2[0]) ? temp1[0] : temp2[0];
     this->res.int32[1] = (temp1[1] < temp2[1]) ? temp1[1] : temp2[1];
     this->res.int32[2] = (temp1[2] < temp2[2]) ? temp1[2] : temp2[2];
     this->res.int32[3] = (temp1[3] < temp2[3]) ? temp1[3] : temp2[3];
 }
-
 
 void blendpd(ssse3_t *this)
 {
@@ -64,8 +63,8 @@ void pblendw(ssse3_t *this)
 
 void pmovsxbw(ssse3_t *this)
 {
-    int8_t  * temp1 = this->src.uint8;
-    int16_t * temp2 = this->dst.uint16;
+    uint8_t  * temp1 = this->src.uint8;
+    uint16_t * temp2 = this->dst.uint16;
 
     this->res.uint16[0] = (temp1[0] > 127) ? temp2[0] = (0xFF00 | temp1[0]) : (temp2[0] = temp1[0]);
     this->res.uint16[1] = (temp1[1] > 127) ? temp2[1] = (0xFF00 | temp1[1]) : (temp2[1] = temp1[1]);
@@ -79,8 +78,8 @@ void pmovsxbw(ssse3_t *this)
 
 void pmovsxbd(ssse3_t *this)
 {
-    int8_t  * temp1 = this->src.uint8;
-    int32_t * temp2 = this->dst.uint32;
+    uint8_t  * temp1 = this->src.uint8;
+    uint32_t * temp2 = this->dst.uint32;
 
     this->res.uint32[0] = (temp1[0] > 127) ? temp2[0] = (0xFFFF00 | temp1[0]) : (temp2[0] = temp1[0]);
     this->res.uint32[1] = (temp1[1] > 127) ? temp2[1] = (0xFFFF00 | temp1[1]) : (temp2[1] = temp1[1]);
@@ -90,8 +89,8 @@ void pmovsxbd(ssse3_t *this)
 
 void pmovsxbq(ssse3_t *this)
 {
-    int8_t  * temp1 = this->src.uint8;
-    int64_t * temp2 = this->dst.uint64;
+    uint8_t  * temp1 = this->src.uint8;
+    uint64_t * temp2 = this->dst.uint64;
 
     this->res.uint64[0] = (temp1[0] > 127) ? temp2[0] = (0xFFFFFFFFFFFFFF00 | temp1[0]) : (temp2[0] = temp1[0]);
     this->res.uint64[1] = (temp1[1] > 127) ? temp2[1] = (0xFFFFFFFFFFFFFF00 | temp1[1]) : (temp2[1] = temp1[1]);
@@ -99,8 +98,8 @@ void pmovsxbq(ssse3_t *this)
 
 void pmovsxwd(ssse3_t *this)
 {
-    int16_t * temp1 = this->src.uint16;
-    int32_t * temp2 = this->dst.uint32;
+    uint16_t * temp1 = this->src.uint16;
+    uint32_t * temp2 = this->dst.uint32;
 
     this->res.uint32[0] = (temp1[0] > 32767) ? temp2[0] = (0xFFFF0000 | temp1[0]) : (temp2[0] = temp1[0]);
     this->res.uint32[1] = (temp1[1] > 32767) ? temp2[1] = (0xFFFF0000 | temp1[1]) : (temp2[1] = temp1[1]);
@@ -110,8 +109,8 @@ void pmovsxwd(ssse3_t *this)
 
 void pmovsxwq(ssse3_t *this)
 {
-    int16_t * temp1 = this->src.uint16;
-    int64_t * temp2 = this->dst.uint64;
+    uint16_t * temp1 = this->src.uint16;
+    uint64_t * temp2 = this->dst.uint64;
 
     this->res.uint64[0] = (temp1[0] > 32767) ? temp2[0] = (0xFFFFFFFFFFFF0000| temp1[0]) : (temp2[0] = temp1[0]);
     this->res.uint64[1] = (temp1[1] > 32767) ? temp2[1] = (0xFFFFFFFFFFFF0000| temp1[1]) : (temp2[1] = temp1[1]);
