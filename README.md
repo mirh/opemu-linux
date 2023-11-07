@@ -6,6 +6,9 @@
 ```
  - TODO
    - fix compiler warnings
+   - add tests for all instructions
+      - maybe use single test by instructtions on assembler
+      - maybe use test code contains all test instructions (some other project contains hard SIMD optimisations)
 
 - This is an adaptation of the original Opcode Emulator from [xnu-amd's repo](https://github.com/sinetek/xnu-amd/tree/master/osfmk/OPEMU) for Linux.
 

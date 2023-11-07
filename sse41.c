@@ -125,7 +125,6 @@ void pmovsxdq(ssse3_t *this)
     this->res.uint64[1] = (temp1[1] > 0x7FFFFFFF) ? temp2[1] = (0xFFFFFFFF00000000 | temp1[1]) : (temp2[1] = temp1[1]);
 }
 
-
 void pmovzxbw(ssse3_t *this)
 {
 	int8_t* temp1 = this->src.uint128;
