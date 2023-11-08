@@ -28,7 +28,7 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			int64_t disp = 0;
 			uint8_t disp_size = sse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (sse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (sse3_obj->op_obj->state,
@@ -44,8 +44,19 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			address += disp;
 
 			if (sse3_obj->op_obj->ring0)
+            {
 				sse3_obj->src.uint64[0] = * ((uint64_t*) (address));
-			else copy_from_user((char*) &sse3_obj->src.uint64[0], address, 8);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &sse3_obj->src.uint64[0], (uint64_t*)address, 8);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 	} else {
 		_store_xmm (sse3_obj->udo_dst->base - UD_R_XMM0, &sse3_obj->dst.uint128);
@@ -56,7 +67,7 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			int64_t disp = 0;
 			uint8_t disp_size = sse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (sse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (sse3_obj->op_obj->state,
@@ -72,8 +83,19 @@ int sse3_grab_operands(sse3_t *sse3_obj)
 			address += disp;
 
 			if (sse3_obj->op_obj->ring0)
+            {
 				sse3_obj->src.uint128 = * ((__uint128_t*) (address));
-			else copy_from_user((char*) &sse3_obj->src.uint128, address, 16);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &sse3_obj->src.uint128, (uint64_t*)address, 16);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 	}
 
@@ -131,7 +153,7 @@ int op_sse3_run(const op_t *op_obj)
     case UD_Imwait:     goto good;
     case UD_Imonitor:   goto good;
 sse3_common:
-	
+
 	sse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
 	sse3_obj.udo_dst = ud_insn_opr (op_obj->ud_obj, 0);
 	sse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
@@ -147,7 +169,7 @@ sse3_common:
 		&& (sse3_obj.udo_dst->base <= UD_R_MM7)) {
 		sse3_obj.ismmx = 1;
 	} else sse3_obj.ismmx = 0;
-	
+
 	if (sse3_grab_operands(&sse3_obj) != 0) goto bad;
 
 	opf(&sse3_obj);
@@ -178,7 +200,7 @@ void fisttp(sse3_t *this)
     uint8_t modrm = 0;
     uint64_t address = 0;
     uint64_t reg_sel[8];
-    
+
     if (islongmode)
     {
         reg_sel[0] = this->op_obj->state64->ax;
@@ -199,96 +221,96 @@ void fisttp(sse3_t *this)
         reg_sel[6] = this->op_obj->state32->si;
         reg_sel[7] = this->op_obj->state32->di;
     }
-    
+
     if (*bytep == 0x66)
     {
         bytep++;
         ins_size++;
     }
-    
+
     switch (*bytep)
     {
         case 0xDB:
             bytep++;
             ins_size++;
-            
+
             modrm = *bytep;
             base = modrm & 0x7;
             mod = (modrm & 0xC0) >> 6;
-            
+
             if (mod == 0)
             {
                 address = reg_sel[base];
             } else if (mod == 1) {
                 bytep++;
                 ins_size++;
-                
+
                 add = *bytep;
                 address = reg_sel[base] + add;
             } else {
                 return;
             }
-            
+
             fisttpl((double *)address);
-            
+
             ins_size++;
-            
+
             return;
             break;
-            
+
         case 0xDD:
             bytep++;
             ins_size++;
-            
+
             modrm = *bytep;
             base = modrm & 0x7;
             mod = (modrm & 0xC0) >> 6;
-            
+
             if (mod == 0)
             {
                 address = reg_sel[base];
             } else if (mod == 1) {
                 bytep++;
                 ins_size++;
-                
+
                 add = *bytep;
                 address = reg_sel[base] + add;
             } else {
                 return;
             }
-            
+
             fisttpq((long double *)address);
-            
+
             ins_size++;
-            
+
             return;
             break;
-            
+
         case 0xDF:
             bytep++;
             ins_size++;
-            
+
             modrm = *bytep;
             base = modrm & 0x7;
             mod = (modrm & 0xC0) >> 6;
-            
+
             if (mod == 0)
             {
                 address = reg_sel[base];
             } else if (mod == 1) {
                 bytep++;
                 ins_size++;
-                
+
                 add = *bytep;
                 address = reg_sel[base] + add;
             } else {
                 return;
             }
-            
+
             fisttps((float *)address);
-            
+
             ins_size++;
-            
+
             return;
             break;
     }

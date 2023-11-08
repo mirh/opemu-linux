@@ -1,12 +1,12 @@
 /*
-             .d8888b.   .d8888b.   .d8888b.  8888888888 .d8888b.  
-            d88P  Y88b d88P  Y88b d88P  Y88b 888       d88P  Y88b 
-            Y88b.      Y88b.      Y88b.      888            .d88P 
-             "Y888b.    "Y888b.    "Y888b.   8888888       8888"  
-                "Y88b.     "Y88b.     "Y88b. 888            "Y8b. 
-                  "888       "888       "888 888       888    888 
-            Y88b  d88P Y88b  d88P Y88b  d88P 888       Y88b  d88P 
-             "Y8888P"   "Y8888P"   "Y8888P"  8888888888 "Y8888P"  
+             .d8888b.   .d8888b.   .d8888b.  8888888888 .d8888b.
+            d88P  Y88b d88P  Y88b d88P  Y88b 888       d88P  Y88b
+            Y88b.      Y88b.      Y88b.      888            .d88P
+             "Y888b.    "Y888b.    "Y888b.   8888888       8888"
+                "Y88b.     "Y88b.     "Y88b. 888            "Y8b.
+                  "888       "888       "888 888       888    888
+            Y88b  d88P Y88b  d88P Y88b  d88P 888       Y88b  d88P
+             "Y8888P"   "Y8888P"   "Y8888P"  8888888888 "Y8888P"
 */
 
 #include "opemu.h"
@@ -104,7 +104,14 @@ case 7:  loadq_template(7, where); break;
 }}
 
 inline void _sstore_gpr32 (ud_type_t n, uint32_t *where) {
-	struct pt_regs *regs;
+/*
+    FIXME: This function nothing do. Getting regisers value from trash pointer
+           and this function write unsigned long in uint32 (unsigned int) ned
+           set ifdefs in result implementation for serarate 64 and 32 mashines
+           but this functions call only for 32bit and we can just cast type?
+    https://elixir.bootlin.com/linux/v6.0/source/arch/x86/include/asm/ptrace.h
+    ---------------------------------------------------------------------------
+    struct pt_regs *regs;
 	switch (n) {
 		case UD_R_EAX:
 			*where = &regs->ax;
@@ -131,9 +138,17 @@ inline void _sstore_gpr32 (ud_type_t n, uint32_t *where) {
 			*where = &regs->di;
 			break;
 	}
+*/
 }
 
 inline void _sstore_gpr64 (ud_type_t n, uint64_t *where) {
+/*
+    FIXME: This function nothing do. Getting regisers value from trash pointer
+           and this function write unsigned long in uint32 (unsigned int) ned
+           set ifdefs in result implementation for serarate 64 and 32 mashines
+           but this functions call only for 32bit and we can just cast type?
+    https://elixir.bootlin.com/linux/v6.0/source/arch/x86/include/asm/ptrace.h
+    ---------------------------------------------------------------------------
 	struct pt_regs *regs;
 	switch (n) {
 		case UD_R_RAX:
@@ -161,6 +176,7 @@ inline void _sstore_gpr64 (ud_type_t n, uint64_t *where) {
 			*where = &regs->di;
 			break;
 	}
+*/
 }
 
 inline void _fstore_xmm (const uint8_t n, float *where)
@@ -228,7 +244,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 	} else {
 		printk("mem");
 	}
-	
+
 	if (ssse3_obj->udo_src->type == UD_OP_REG) {
 		if (ud_insn_mnemonic(ssse3_obj->op_obj->ud_obj) == UD_Iroundss) {
 			_fstore_xmm (ssse3_obj->udo_src->base - UD_R_XMM0, &ssse3_obj->src.fa32[0]);
@@ -257,7 +273,7 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			int64_t disp = 0;
 			uint8_t disp_size = ssse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
@@ -273,15 +289,26 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			address += disp;
 
 			if (ssse3_obj->op_obj->ring0)
+            {
 				ssse3_obj->src.uint64[0] = * ((uint64_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint64[0], address, 8);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &ssse3_obj->src.uint64[0], (uint64_t*)address, 8);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 		else if (ssse3_obj->udo_src->size == 128) {
 			// m128 load
 			int64_t disp = 0;
 			uint8_t disp_size = ssse3_obj->udo_src->offset;
 			uint64_t address;
-			
+
 			if (ssse3_obj->udo_src->scale) goto bad; // TODO
 
 			if (retrieve_reg (ssse3_obj->op_obj->state,
@@ -297,14 +324,25 @@ int ssse3_grab_operands(ssse3_t *ssse3_obj)
 			address += disp;
 
 			if (ssse3_obj->op_obj->ring0)
+            {
 				ssse3_obj->src.uint128 = * ((__uint128_t*) (address));
-			else copy_from_user((char*) &ssse3_obj->src.uint128, address, 16);
+            }
+			else
+            {
+                unsigned long status =
+                copy_from_user((char*) &ssse3_obj->src.uint128, (uint64_t*)address, 16);
+                if(status != 0)
+                {
+                    //FIXME: need handle, no just allert
+                    printk("OPEMU:ERROR copy_from_user() status %lu %s %d",status,__FILE__,__LINE__);
+                }
+            }
 		}
 		else {
 			printk("src mem else");
 		}
 	}
-	
+
     return 0;
     // Only reached if bad
 bad:	return -1;
@@ -317,7 +355,7 @@ bad:	return -1;
 int ssse3_commit_results(ssse3_t *ssse3_obj)
 {
 	if (ud_insn_mnemonic(ssse3_obj->op_obj->ud_obj) == UD_Iroundss) {
-		
+
 		_fload_xmm (ssse3_obj->udo_dst->base - UD_R_XMM0, (void*) &ssse3_obj->res.fa32[0]);
 	}
 	else if (ssse3_obj->ismmx) {
@@ -367,8 +405,10 @@ int op_sse3x_run(op_t *op_obj)
     case UD_Ipcmpgtq:	opf = pcmpgtq;   goto sse42_common;
     case UD_Ipopcnt:    opf = popcnt;    goto regop;
     case UD_Icrc32:     opf = crc32_op;  goto regop;
-    
+
     //SSE 4.1
+    case UD_Ipmaxud: opf = pmaxud;	goto ssse3_common;
+    case UD_Ipminud: opf = pminud;	goto ssse3_common;
     //case UD_Iblendpd: opf = blendpd;	goto ssse3_common;
     //case UD_Iblendps: opf = blendps;	goto ssse3_common;
     //case UD_Ipblendw: opf = pblendw;	goto ssse3_common;
@@ -384,6 +424,7 @@ int op_sse3x_run(op_t *op_obj)
     //case UD_Ipmovzxdq: opf = pmovzxdq;	goto ssse3_common;
     //case UD_Ipmovzxwd: opf = pmovzxwd;	goto ssse3_common;
     //case UD_Ipmovzxwq: opf = pmovzxwq;	goto ssse3_common;
+    //
     case UD_Iroundss: opf = roundss;	goto ssse3_common;
     case UD_Ipextrb: opf = pextrb;	goto ssse3_common;
     case UD_Ipextrd: opf = pextrd;	goto ssse3_common;
@@ -393,7 +434,7 @@ int op_sse3x_run(op_t *op_obj)
     case UD_Ipinsrd: opf = pinsrd;	goto ssse3_common;
     case UD_Ipinsrq: opf = pinsrq;	goto ssse3_common;
 
-sse42_common:	
+sse42_common:
 
 	goto ssse3_common;
 
@@ -422,7 +463,7 @@ sse42_common:
 
 	case UD_Iphaddsw:	opf = phaddsw;	goto ssse3_common;
 ssse3_common:
-	
+
 	ssse3_obj.udo_src = ud_insn_opr (op_obj->ud_obj, 1);
 	ssse3_obj.udo_dst = ud_insn_opr (op_obj->ud_obj, 0);
 	ssse3_obj.udo_imm = ud_insn_opr (op_obj->ud_obj, 2);
@@ -434,7 +475,7 @@ ssse3_common:
 	if ((ssse3_obj.udo_dst->base >= UD_R_MM0) && (ssse3_obj.udo_dst->base <= UD_R_MM7)) {
 		ssse3_obj.ismmx = 1;
 	} else ssse3_obj.ismmx = 0;
-	
+
 	ssse3_obj.dst64 = ssse3_obj.dst32 = 0;
 
 	if (ssse3_grab_operands(&ssse3_obj) != 0) goto bad;
@@ -454,7 +495,7 @@ regop:
 
     opf(&ssse3_obj);
 
-good:	
+good:
 	if (ssse3_obj.dst64) {
 
 		//printk("OPEMUq:  %s\n", ud_insn_asm(op_obj->ud_obj));
@@ -465,8 +506,8 @@ good:
 		op_obj->dst32 = (uint8_t) 1;
 		op_obj->res32 = (uint32_t) ssse3_obj.res.uint32[0];
 	}
-	
-	
+
+
 	//uint64_t ek;
 	//asm __volatile__ ("movq %%rcx, %0" : "=m" (ek) :);
 	//printk("good rcx: %u", ek);
@@ -598,7 +639,7 @@ void pabsd (ssse3_t *this)
 
 /**
  * Concatenate and shift
- */ 
+ */
 void palignr (ssse3_t *this)
 {
 	uint8_t imm = this->udo_imm->lval.ubyte;
@@ -613,13 +654,13 @@ void palignr (ssse3_t *this)
         // AnV - Cast fixed
 		__uint128_t temp1[2];
 		uint8_t *shiftp; // that type matters for pointer arithmetic
-        uint64_t shiftpaddr;
+        uint64_t shiftpaddr; //XXX:why this need?
 		temp1[0] = this->src.uint128;
 		temp1[1] = this->dst.uint128;
 		shiftp = (uint8_t*) &temp1[0];
 		shiftp += imm;
-        shiftpaddr = (uint64_t)shiftp;
-		this->res.uint128 = ((__uint128_t*) shiftpaddr);
+        shiftpaddr = (uint64_t)shiftp;//XXX:why?
+		this->res.uint128 = *((__uint128_t*) shiftpaddr);
 	}
 }
 
@@ -682,7 +723,7 @@ void pmaddubsw (ssse3_t *this)
 		++res;
 		src += 2;
 		dst += 2;
-	}	
+	}
 }
 
 /**

@@ -3,7 +3,7 @@
 #include "opemu.h"
 #include "libudis86/extern.h"
 #include "fpins.h"
-#include <asm/fpu/internal.h>
+#include <asm/fpu/types.h>
 
 // log function debug
 #define LF	D("%s\n", __PRETTY_FUNCTION__);
@@ -115,7 +115,7 @@ typedef void (*ssse3_func)(ssse3_t*);
 	asm __volatile__ ("movss %0, %%xmm" #n :: "m" (*(where)));	\
 	kernel_fpu_end(); \
 	} while (0);
-	
+
 #define storedqu_template(n, where)					\
 	do {								\
 	asm __volatile__ ("movdqu %%xmm" #n ", %0" : "=m" (*(where)));	\
@@ -183,6 +183,8 @@ inline void ptest	(ssse3_t*);
 inline void pinsrb	(ssse3_t*);
 inline void pinsrd	(ssse3_t*);
 inline void pinsrq	(ssse3_t*);
+inline void pmaxud (ssse3_t*);
+inline void pminud (ssse3_t*);
 
 
 /*** SSE4.2 TODO move this somewhere else ***/

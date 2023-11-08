@@ -1,17 +1,17 @@
-/*                                                                  8888888 8888888 8888888 
-                                                                      888     888     888   
-                                                                      888     888     888   
-             .d88b.  88888b.   .d88b.  88888b.d88b.  888  888         888     888     888   
-            d88""88b 888 "88b d8P  Y8b 888 "888 "88b 888  888         888     888     888   
-            888  888 888  888 88888888 888  888  888 888  888         888     888     888   
-            Y88..88P 888 d88P Y8b.     888  888  888 Y88b 888         888     888     888   
-             "Y88P"  88888P"   "Y8888  888  888  888  "Y88888       8888888 8888888 8888888 
-                     888                                                                    
-                     888                                                                    
-                     888                                                                    
-IM      ~ SINETEK                                                                           
-        ~ ANV                                                                               
-        ~ BRONZOVKA                                                                         
+/*                                                                  8888888 8888888 8888888
+                                                                      888     888     888
+                                                                      888     888     888
+             .d88b.  88888b.   .d88b.  88888b.d88b.  888  888         888     888     888
+            d88""88b 888 "88b d8P  Y8b 888 "888 "88b 888  888         888     888     888
+            888  888 888  888 88888888 888  888  888 888  888         888     888     888
+            Y88..88P 888 d88P Y8b.     888  888  888 Y88b 888         888     888     888
+             "Y88P"  88888P"   "Y8888  888  888  888  "Y88888       8888888 8888888 8888888
+                     888
+                     888
+                     888
+IM      ~ SINETEK
+        ~ ANV
+        ~ BRONZOVKA
                                                                                           */
 /**
  * This is called the Opcode Emulator: it traps invalid opcode exceptions
@@ -62,7 +62,7 @@ int opemu_utrap(struct pt_regs *regs)
 
 	bytes_skip = ud_disassemble(&ud_obj);
 	if ( bytes_skip == 0 ) goto bad;
-	const uint32_t mnemonic = ud_insn_mnemonic(&ud_obj);
+	//const uint32_t mnemonic = ud_insn_mnemonic(&ud_obj);
 	//printk("OPEMU:  %s\n", ud_insn_asm(&ud_obj));
 
 	int error = 0;
@@ -83,7 +83,7 @@ int opemu_utrap(struct pt_regs *regs)
 		error = 0;
 		error |= op_sse3_run(&op_obj);
 	}
-	
+
 	if (!error) goto cleanexit;
 
 	/** fallthru **/
@@ -102,7 +102,7 @@ cleanexit:
 	/*if (islongmode) saved_state64(state)->isf.rip += bytes_skip;
 	else*/
 
-	if (op_obj.dst64)
+    if (op_obj.dst64)
 		{
 					//printk("oops");
 
@@ -122,9 +122,11 @@ cleanexit:
 				case UD_R_RBX:
 					regs->bx = op_obj.res64;
 					break;
+                default:
+                    break;
 			}
 		}
-		
+
 	if (op_obj.dst32)
 		{
 					printk("oops32");
@@ -145,6 +147,8 @@ cleanexit:
 				case UD_R_EBX:
 					regs->bx = op_obj.res32;
 					break;
+                default:
+                    break;
 			}
 		}
 	regs->ip += bytes_skip;
@@ -634,7 +638,7 @@ int retrieve_reg(/*const*/ struct pt_regs *regs, const ud_type_t base, uint8_t *
 
 	default: goto bad;
 
-	}		
+	}
 
     return 0;
 

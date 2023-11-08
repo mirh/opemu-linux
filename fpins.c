@@ -8,7 +8,7 @@
 
 #include "fpins.h"
 #include "ssse3_priv.h"
-#include <asm/fpu/internal.h>
+#include <asm/fpu/types.h>
 
 /**********************************************/
 /**  IMM8 or MXCSR Rounding Control          **/
